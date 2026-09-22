@@ -1,0 +1,24 @@
+instruction: Put the object into the hinged jar and close its lid.
+bindings:
+  agent.n.01_1: robot
+  table.n.02_1: work_table
+  hinged_jar.n.01_1: jar
+  bratwurst.n.01_1: payload
+objects:
+  - {type: DatasetObject, name: jar, category: hinged_jar, model: vzwhbg, position: [0.8, 0.15, 1.0]}
+  - {type: DatasetObject, name: payload, category: bratwurst, model: pqfrrn, position: [0.8, -0.2, 1.0]}
+placements: {}
+sampling:
+  jar:
+    xy_bounds: [[0.65, -0.35], [1.00, 0.35]]
+    yaw_degrees: [-180.0, 180.0]
+  payload:
+    xy_bounds: [[0.65, -0.40], [1.00, 0.40]]
+    yaw_degrees: [-180.0, 180.0]
+initial_state:
+  placements:
+    jar: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0], closed: true}
+    payload: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0]}
+  parameters:
+    condition: upright jar with closed lid and payload outside
+    manipulated_objects: [jar, payload]

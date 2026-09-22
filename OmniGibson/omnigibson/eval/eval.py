@@ -24,8 +24,7 @@ from pathlib import Path
 
 from omegaconf import OmegaConf
 
-from omnigibson.eval.evaluator import Evaluator, resolve_instance_ids
-from omnigibson.eval.utils.eval_utils import DEFAULT_EVAL_SEED, seed_everything
+from omnigibson.adept import TASK_NAMES as ADEPT_TASK_NAMES
 from omnigibson.macros import gm
 from omnigibson.utils.ui_utils import create_module_logger
 
@@ -35,6 +34,7 @@ logger.setLevel(logging.INFO)
 
 
 def parse_args() -> argparse.Namespace:
+    """解析官方评估和 ADEPT 环境检查参数."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task-name", required=True, help="BEHAVIOR task name, e.g. turning_on_radio.")
     parser.add_argument("--host", default="127.0.0.1", help="Policy websocket server host.")
@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
         "--instance-indices",
         type=int,
         nargs="+",
-        default=[0],
+        default=None,
         help=(
             "Instance indices for the selected mode. For train these are direct train instance IDs; "
             "for public_test / hidden_test these index into that 20-instance split."
@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mode",
-        choices=("train", "public_test", "hidden_test"),
+        choices=("train", "public_test", "hidden_test", "check_env"),
         default="public_test",
         help="Instance split to evaluate. Default: public_test.",
     )
@@ -69,7 +69,7 @@ def parse_args() -> argparse.Namespace:
         "--max-steps",
         type=int,
         default=None,
-        help="Episode timeout in steps. Default (None) = 1.5x mean human-demo length.",
+        help="Episode timeout, or preview steps for check_env. Defaults: ADEPT YAML; challenge 1.5x mean demo length.",
     )
     parser.add_argument(
         "--env-wrapper",
@@ -100,9 +100,31 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """根据任务类型启动环境检查或策略评估."""
     args = parse_args()
+    if args.instance_indices is None:
+        args.instance_indices = [1] if args.task_name in ADEPT_TASK_NAMES else [0]
 
     gm.HEADLESS = args.headless
+
+    if args.task_name in ADEPT_TASK_NAMES:
+        if args.env_wrapper != "omnigibson.eval.wrappers.DefaultWrapper":
+            raise ValueError("ADEPT uses the shared JoyLo camera configuration without challenge wrappers.")
+        if args.robot_config is not None:
+            raise ValueError("ADEPT uses its shared R1Pro configuration; edit adept/configs/common.yaml.")
+        if args.mode == "check_env":
+            from omnigibson.adept.check_env import run
+        elif args.mode == "train":
+            from omnigibson.adept.evaluate import run
+        else:
+            raise ValueError("ADEPT instances use --mode train or --mode check_env with direct instance IDs.")
+        run(args)
+        return
+    if args.mode == "check_env":
+        raise ValueError("check_env currently supports the three ADEPT tasks.")
+
+    from omnigibson.eval.evaluator import Evaluator, resolve_instance_ids
+    from omnigibson.eval.utils.eval_utils import DEFAULT_EVAL_SEED, seed_everything
 
     seed = seed_everything(DEFAULT_EVAL_SEED)
     logger.info(f"Seeded Python, NumPy, and Torch with seed={seed}")

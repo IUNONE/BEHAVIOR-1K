@@ -7,7 +7,7 @@ import json
 import omnigibson as og
 import omnigibson.lazy as lazy
 from omnigibson.envs import HDF5CollectionWrapper
-from omnigibson.macros import macros
+from omnigibson.macros import gm, macros
 from omnigibson.robots import Robot, REGISTERED_ROBOTS
 from omnigibson.tasks import BehaviorTask
 from omnigibson.systems.system_base import BaseSystem
@@ -20,6 +20,9 @@ from omnigibson.controllers import ControllerView
 from omnigibson.utils.config_utils import parse_config
 from omnigibson.utils.python_utils import recursively_convert_to_torch
 from omnigibson.utils.asset_utils import get_task_instance_path
+from omnigibson.adept import TASK_NAMES as ADEPT_TASK_NAMES
+from omnigibson.adept.environment import build_environment_config, constrain_action, load_instance, load_task_config
+from omnigibson.adept.recording import ADEPTCollectionWrapper
 
 import gello.utils.og_teleop_utils as utils
 from gello.utils.zmq_utils import ZMQRobotServer, ZMQServerThread
@@ -27,6 +30,7 @@ from gello.utils.og_teleop_cfg import *
 
 
 class OGRobotServer:
+    """提供官方任务与 ADEPT 任务的 JoyLo 遥操作服务."""
     def __init__(
         self,
         robot: str,
@@ -41,7 +45,19 @@ class OGRobotServer:
         ghosting: bool = True,
         attachment_joint_visuals: Optional[bool] = None,
     ):
-        if task_name is not None:
+        """创建任务环境, 实例和遥操作记录接口."""
+        self._adept = task_name in ADEPT_TASK_NAMES
+        if self._adept:
+            if robot != "r1pro" or robot_name != "robot" or config is not None:
+                raise ValueError("ADEPT uses the shared r1pro configuration and robot name 'robot'.")
+            self.task_name = task_name
+            self.instance_id = 1 if instance_id is None else instance_id
+            adept_config = load_task_config(task_name)
+            self.task_cfg = {
+                "robot_start_position": adept_config["robot"]["position"],
+                "robot_start_orientation": adept_config["robot"]["orientation"],
+            }
+        elif task_name is not None:
             available_tasks = utils.load_available_tasks()
             assert task_name in available_tasks, (
                 f"Task {task_name} not found in available tasks"
@@ -74,6 +90,8 @@ class OGRobotServer:
             macros.object_states.attached_to.ENABLE_ATTACHMENT_JOINT_VISUALS = enable_attachment_joint_visuals
 
         utils.apply_omnigibson_macros()
+        if self._adept:
+            gm.ENABLE_TRANSITION_RULES = False
 
         # Disable a subset of transition rules for data collection
         for rule in DISABLED_TRANSITION_RULES:
@@ -85,7 +103,9 @@ class OGRobotServer:
 
         self._robot_type = robot
 
-        if config is None:
+        if self._adept:
+            cfg = build_environment_config(task_name, "collection", self.instance_id)
+        elif config is None:
             cfg = utils.generate_basic_environment_config(
                 robot_type=robot,
                 robot_name=robot_name,
@@ -96,15 +116,17 @@ class OGRobotServer:
             # Load config from file
             cfg = parse_config(config)
 
-        robot_config = utils.generate_robot_config(
-            robot_type=robot,
-            robot_name=robot_name,
-            task_name=self.task_name,
-            task_cfg=self.task_cfg,
-        )
-        cfg["robots"] = [robot_config]
+        if not self._adept:
+            robot_config = utils.generate_robot_config(
+                robot_type=robot,
+                robot_name=robot_name,
+                task_name=self.task_name,
+                task_cfg=self.task_cfg,
+            )
+            cfg["robots"] = [robot_config]
+            cfg.get("task", {}).pop("predefined_problem", None)
 
-        if self.task_name is not None and partial_load:
+        if self.task_name is not None and partial_load and not self._adept:
             relevant_rooms = utils.get_task_relevant_room_types(
                 activity_name=self.task_name
             )
@@ -116,6 +138,8 @@ class OGRobotServer:
 
         self.env = og.Environment(configs=cfg)
         self.robot = self.env.robots[0]
+        if self._adept:
+            load_instance(self.env, self.task_name, self.instance_id)
 
         assert self.robot.is_manipulation, (
             f"Robot {robot} is not a manipulation robot! Cannot use GELLO"
@@ -177,7 +201,8 @@ class OGRobotServer:
         # Recording configuration
         self._recording_path = recording_path
         if self._recording_path is not None:
-            self.env = HDF5CollectionWrapper(
+            collection_wrapper = ADEPTCollectionWrapper if self._adept else HDF5CollectionWrapper
+            self.env = collection_wrapper(
                 env=self.env,
                 output_path=self._recording_path,
                 viewport_camera_path=og.sim.viewer_camera.active_camera_path,
@@ -309,10 +334,13 @@ class OGRobotServer:
         self._zmq_server_thread = ZMQServerThread(self._zmq_server)
 
     def _setup_teleop_support(self):
-        """Set up cameras, visualizations, UI elements"""
+        """配置遥操作相机, 可视化和状态界面."""
         # Setup cameras
+        external_sensors = self.env.external_sensors
+        if self._adept:
+            external_sensors = {f"external_sensor{i}": external_sensors["table_side"] for i in range(3)}
         self.camera_paths, self.viewports = utils.setup_cameras(
-            self.robot, self.env.external_sensors, RESOLUTION, self._teleop_config
+            self.robot, external_sensors, RESOLUTION, self._teleop_config
         )
         self.active_camera_id = 0
 
@@ -876,12 +904,7 @@ class OGRobotServer:
         )
 
     def get_action(self):
-        """
-        Generate action based on current joint commands
-
-        Returns:
-            torch.Tensor: Action for the robot
-        """
+        """根据遥操作关节命令生成动作并应用 ADEPT 底盘约束."""
         # Start an empty action
         action = th.zeros(self.robot.action_dim)
 
@@ -995,6 +1018,9 @@ class OGRobotServer:
                 self.active_arm
             ].clone()
 
+        if self._adept:
+            action = constrain_action(action, self.robot)
+
         # Optionally update ghost robot
         if self.ghosting and self._frame_counter % GHOST_UPDATE_FREQ == 0:
             self._ghost_appear_counter = utils.update_ghost_robot(
@@ -1013,13 +1039,9 @@ class OGRobotServer:
             detector.reset()
 
     def reset(self, increment_instance=True):
-        """
-        Reset the environment and robot state
-
-        Args:
-            increment_instance (bool): If True and self.instance_id is not None, will increment the instance to reset to
-                and reset to the updated instance id's initial state
-        """
+        """恢复环境与机器人初态, ADEPT 采集保持当前实例编号."""
+        if self._adept:
+            increment_instance = False
         if self._recording_path is not None:
             reset_text = "Resetting environment, episode recorded"
         else:

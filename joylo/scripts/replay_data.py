@@ -13,6 +13,7 @@ from omnigibson.envs import DataPlaybackWrapper
 from omnigibson.eval.utils.obs_utils import create_video_writer, write_video
 from omnigibson.macros import gm
 from omnigibson.utils.config_utils import TorchEncoder
+from omnigibson.adept import TASK_NAMES as ADEPT_TASK_NAMES
 
 from gello.utils.qa_utils import (
     ALL_QA_METRICS,
@@ -150,19 +151,12 @@ def replay_hdf5_to_video(
     run_qa: bool = False,
     episode_id: Optional[int] = None,
 ) -> int:
-    """
-    Replays a single HDF5 file and generates videos.
+    """按任务类型回放指定 HDF5 回合并生成视频."""
+    if task_name in ADEPT_TASK_NAMES:
+        from omnigibson.adept.replay import replay
 
-    Args:
-        input_path: Path to the HDF5 file
-        task_name: Name of the task (also used for QA validation if run_qa is True)
-        flush_every_n_steps: Number of steps to flush the data after
-        run_qa: Whether to run QA metrics
-        episode_id: If specified, replay this episode instead of selecting the longest
+        return replay(input_path, task_name, episode_id=episode_id, run_qa=run_qa)
 
-    Returns:
-        episode_id: ID of the episode
-    """
     # get the hdf5 file name without extension
     input_filename = os.path.splitext(os.path.basename(input_path))[0]
 
@@ -362,6 +356,7 @@ def replay_hdf5_to_video(
 
 
 def main():
+    """解析离线回放参数并选择任务对应的回放流程."""
     parser = argparse.ArgumentParser(
         description="Replay HDF5 files and generate videos"
     )
@@ -380,13 +375,16 @@ def main():
         "--qa", action="store_true", help="Run QA metrics during replay"
     )
     parser.add_argument(
-        "--episode_id",
+        "--episode_id", "--episode-id",
         type=int,
         default=None,
         help="Episode ID to replay. If omitted with --qa in an interactive shell, asks for a selection.",
     )
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=None)
 
     args = parser.parse_args()
+    if args.headless is not None:
+        gm.HEADLESS = args.headless
 
     _ = replay_hdf5_to_video(
         input_path=args.input,
