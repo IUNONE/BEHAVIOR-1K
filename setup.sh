@@ -344,7 +344,8 @@ if [ "$OMNIGIBSON" = true ]; then
             }
 
             install_isaac_packages() {
-                local temp_dir=$(mktemp -d)
+                local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/behavior/isaacsim/5.1.0/${ARCH}"
+                mkdir -p "$cache_dir" || return 1
                 local packages=(
                     "omniverse_kit-107.3.1.206797"
                     "isaacsim_kernel-5.1.0.0"
@@ -379,28 +380,33 @@ if [ "$OMNIGIBSON" = true ]; then
                     local pkg_name=${pkg%-*}
                     local filename="${pkg}-cp311-none-manylinux_2_35_${ARCH}.whl"
                     local url="https://pypi.nvidia.com/${pkg_name//_/-}/$filename"
-                    local filepath="$temp_dir/$filename"
-
-                    echo "Downloading $pkg..."
-                    if ! curl -sL "$url" -o "$filepath"; then
-                        echo "ERROR: Failed to download $pkg"
-                        rm -rf "$temp_dir"
-                        return 1
-                    fi
+                    local filepath="$cache_dir/$filename"
 
                     # Rename for older GLIBC
                     if check_glibc_old; then
-                        local new_filepath="${filepath/manylinux_2_35/manylinux_2_31}"
-                        mv "$filepath" "$new_filepath"
-                        filepath="$new_filepath"
+                        filepath="${filepath/manylinux_2_35/manylinux_2_31}"
+                    fi
+
+                    if [ -f "$filepath" ]; then
+                        echo "Using cached $pkg"
+                    else
+                        local partial_filepath="${filepath}.part"
+                        echo "Downloading $pkg..."
+                        if ! curl --fail --location --show-error \
+                            --retry 5 --retry-delay 3 --connect-timeout 30 \
+                            --continue-at - "$url" -o "$partial_filepath"; then
+                            echo "ERROR: Failed to download $pkg. Download progress is preserved in $cache_dir"
+                            echo "Activate the existing conda environment and rerun setup.sh without --new-env to resume."
+                            return 1
+                        fi
+                        mv "$partial_filepath" "$filepath" || return 1
                     fi
 
                     wheel_files+=("$filepath")
                 done
 
                 echo "Installing Isaac Sim packages..."
-                python -m pip install "${wheel_files[@]}"
-                rm -rf "$temp_dir"
+                python -m pip install "${wheel_files[@]}" || return 1
 
                 # Verify installation
                 if ! python -c "import isaacsim" 2>/dev/null; then
