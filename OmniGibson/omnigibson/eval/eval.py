@@ -91,12 +91,22 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--video-fps", type=int, default=30, help="Frame rate for saved rollout videos.")
     parser.add_argument(
+        "--camera_resolution", "--camera-resolution", type=int, default=None,
+        help="Temporary square resolution for all four ADEPT check_env cameras, e.g. 1280.",
+    )
+    parser.add_argument(
         "--headless",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Run OmniGibson headless (default: True).",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.camera_resolution is not None:
+        if args.camera_resolution < 1:
+            parser.error("--camera_resolution must be positive.")
+        if args.mode != "check_env" or args.task_name not in ADEPT_TASK_NAMES:
+            parser.error("--camera_resolution is supported only for ADEPT --mode check_env.")
+    return args
 
 
 def main() -> None:

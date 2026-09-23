@@ -22,9 +22,9 @@ def frames(env):
     return {role: sensor.get_obs()[0]["rgb"][..., :3].detach().cpu().numpy() for role, sensor in cameras(env).items()}
 
 
-def mosaic(images):
-    """将四路视角排列成统一尺寸的预览画面."""
-    images = {key: cv2.resize(value, (640, 480)) for key, value in images.items()}
+def mosaic(images, tile_size=(640, 480)):
+    """将四路视角按指定单格宽高排列成预览画面."""
+    images = {key: cv2.resize(value, tile_size) for key, value in images.items()}
     return np.concatenate([np.concatenate([images["head"], images["table_side"]], axis=1),
                            np.concatenate([images["left_wrist"], images["right_wrist"]], axis=1)], axis=0)
 

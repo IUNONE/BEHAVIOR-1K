@@ -29,6 +29,7 @@ class ADEPTTask(BehaviorTask):
         """恢复实例初态, 清除渲染历史并通过仿真器刷新画面, 不推进物理步."""
         super().reset(env)
         og.sim.sync_physx_to_fabric()
+        env.external_sensors["table_side"].reset_render_product()
         lazy.omni.usd.get_context().reset_renderer_accumulation()
         for _ in range(32):
             og.sim.render()

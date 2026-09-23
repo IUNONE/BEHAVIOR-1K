@@ -21,8 +21,19 @@ def run(args):
     if check_steps < 1:
         raise ValueError("check_env steps must be positive.")
     failed = False
+    env_config = build_environment_config(
+        args.task_name, instance_id=args.instance_indices[0], max_steps=check_steps,
+    )
+    tile_size = (640, 480)
+    if args.camera_resolution is not None:
+        resolution = args.camera_resolution
+        sensors = list(env_config["robots"][0]["sensor_config"].values())
+        sensors.extend(env_config["env"]["external_sensors"])
+        for sensor in sensors:
+            sensor["sensor_kwargs"].update(image_width=resolution, image_height=resolution)
+        tile_size = (resolution, resolution)
     try:
-        env = og.Environment(configs=build_environment_config(args.task_name, instance_id=args.instance_indices[0], max_steps=check_steps))
+        env = og.Environment(configs=env_config)
         configure_robot_physics(env)
         for instance_id in args.instance_indices:
             load_instance(env, args.task_name, instance_id)
@@ -38,7 +49,7 @@ def run(args):
             try:
                 for _ in range(check_steps):
                     env.step(action)
-                    writer.write(mosaic(frames(env)))
+                    writer.write(mosaic(frames(env), tile_size=tile_size))
                     max_base_drift = max(max_base_drift, float(th.linalg.vector_norm(env.robots[0].get_position_orientation()[0] - base)))
                     for name, position in initial_positions.items():
                         current = env.scene.object_registry("name", name).get_position_orientation()[0]

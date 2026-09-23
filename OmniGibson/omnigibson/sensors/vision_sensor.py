@@ -632,6 +632,24 @@ class VisionSensor(BaseSensor):
         # Run super
         super().remove()
 
+    def reset_render_product(self):
+        """重建独立渲染输出并重新绑定观测读取器, 保留相机参数.
+
+        新输出在旧输出释放前创建, 使其使用独立路径和渲染资源.
+        调用方需在完成状态恢复后通过仿真器渲染以更新观测.
+        """
+        with og.sim.editing_usd():
+            product = lazy.omni.replicator.core.create.render_product(
+                self.prim_path, (self.image_width, self.image_height), force_new=True,
+            )
+            annotators = [annotator for annotator in self._annotators.values() if annotator is not None]
+            for annotator in annotators:
+                annotator.detach([self._render_product.path])
+            self._render_product.destroy()
+            self._render_product = product
+            for annotator in annotators:
+                annotator.attach([self._render_product])
+
     @property
     def render_product(self):
         """

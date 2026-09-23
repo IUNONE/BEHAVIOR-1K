@@ -10,10 +10,10 @@ objects:
 placements: {}
 sampling:
   tupperware:
-    xy_bounds: [[0.65, 0.13], [0.80, 0.18]]
+    xy_bounds: [[0.65, 0.13], [0.85, 0.26]]
     yaw_degrees: [-180.0, 180.0]
   payload:
-    xy_bounds: [[0.59, -0.23], [0.82, -0.14]]
+    xy_bounds: [[0.59, -0.28], [0.85, -0.14]]
     yaw_degrees: [-180.0, 180.0]
 initial_state:
   placements:

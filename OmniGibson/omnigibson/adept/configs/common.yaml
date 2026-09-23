@@ -10,11 +10,11 @@ robot:
   position: [0.0, 0.0, 0.0]
   orientation: [0.0, 0.0, 0.0, 1.0]
 camera:
-  position: [1.65, 0.05, 1.9]
-  target: [0.55, 0.0, 0.85]
+  position: [1.45, 0.05, 1.75]
+  target: [0.45, 0.0, 0.85]
   image_height: 480
   image_width: 480
-  horizontal_aperture: 40.0
+  horizontal_aperture: 32.0
 room_objects:
   - {type: PrimitiveObject, name: floor, primitive_type: Cube, scale: [4.0, 4.0, 0.1], position: [0.5, 0.0, -0.05], fixed_base: true, rgba: [0.65, 0.65, 0.65, 1.0]}
   - {type: PrimitiveObject, name: back_wall, primitive_type: Cube, scale: [0.1, 4.0, 2.5], position: [2.5, 0.0, 1.25], fixed_base: true}
@@ -26,9 +26,9 @@ table:
   name: work_table
   category: desk
   model: tmluxa
-  bounding_box: [0.51, 0.71, 0.70]
+  bounding_box: [0.65, 0.95, 0.75]
   fixed_base: true
-  position: [0.73, 0.0, 0.35]
+  position: [0.80, 0.0, 0.375]
   orientation: [0.0, 0.0, 0.0, 1.0]
 thresholds:
   linear_speed: 0.02
