@@ -26,10 +26,11 @@ class ADEPTTask(BehaviorTask):
         self.scene_name = "adept_room"
 
     def reset(self, env):
-        """恢复实例初态, 清除渲染历史并通过仿真器刷新画面, 不推进物理步."""
+        """恢复实例初态与画面, 并在渲染更新后重新绑定物理句柄, 不推进物理步."""
         super().reset(env)
         og.sim.sync_physx_to_fabric()
         env.external_sensors["table_side"].reset_render_product()
         lazy.omni.usd.get_context().reset_renderer_accumulation()
         for _ in range(32):
             og.sim.render()
+        og.sim.update_handles()
