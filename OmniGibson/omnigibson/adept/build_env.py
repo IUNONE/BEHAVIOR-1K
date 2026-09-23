@@ -20,21 +20,15 @@ from omnigibson.adept.environment import (
 )
 from omnigibson.adept.scene import ADEPTScene
 from omnigibson.macros import gm
-from omnigibson.object_states import Open
 from omnigibson.utils.bddl_utils import evaluate_bddl_predicate, get_knowledge_base
 from omnigibson.utils.usd_utils import RigidContactAPI
 
 
 def place_object(env, name, placement):
-    """根据支撑面高度放置对象并设置明确的关节初态."""
+    """根据支撑面高度与指定朝向放置对象."""
     obj = env.scene.object_registry("name", name)
     position = th.tensor([*placement["xy"], 1.5], dtype=th.float32)
     obj.set_position_orientation(position, th.tensor(placement["orientation"], dtype=th.float32))
-    if placement.get("closed", False):
-        _, joints, directions = obj.states[Open].relevant_joints_info
-        for joint, direction in zip(joints, directions):
-            closed = joint.lower_limit if direction == 1 else joint.upper_limit
-            joint.set_pos(th.tensor([closed]), drive=False)
     support = placement.get("support")
     target_z = float(env.scene.object_registry("name", support).aabb[1][2]) + placement.get("gap", 0.003) if support else placement["bottom_z"]
     position[2] += target_z - float(obj.aabb[0][2])

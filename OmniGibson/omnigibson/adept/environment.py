@@ -46,7 +46,7 @@ def task_directory(task_name):
 
 
 def camera_config(config):
-    """根据位置和观察目标构造固定桌侧相机."""
+    """根据位置和观察目标构造固定第三视角相机."""
     camera = deepcopy(config["camera"])
     position = th.tensor(camera.pop("position"), dtype=th.float32)
     target = th.tensor(camera.pop("target"), dtype=th.float32)

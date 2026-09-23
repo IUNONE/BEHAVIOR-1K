@@ -1,0 +1,24 @@
+instruction: Put the bread into the tupperware container.
+bindings:
+  agent.n.01_1: robot
+  table.n.02_1: work_table
+  tupperware.n.01_1: tupperware
+  bread_slice.n.01_1: payload
+objects:
+  - {type: DatasetObject, name: tupperware, category: tupperware, model: mkstwr, position: [0.8, 0.18, 1.0]}
+  - {type: DatasetObject, name: payload, category: bread_slice, model: yremdf, position: [0.8, -0.22, 1.0]}
+placements: {}
+sampling:
+  tupperware:
+    xy_bounds: [[0.65, 0.05], [1.00, 0.35]]
+    yaw_degrees: [-180.0, 180.0]
+  payload:
+    xy_bounds: [[0.65, -0.35], [1.00, -0.05]]
+    yaw_degrees: [-180.0, 180.0]
+initial_state:
+  placements:
+    tupperware: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0]}
+    payload: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0]}
+  parameters:
+    condition: open tupperware on the table with bread outside the container
+    manipulated_objects: [tupperware, payload]

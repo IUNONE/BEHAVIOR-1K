@@ -1,3 +1,6 @@
+import omnigibson as og
+import omnigibson.lazy as lazy
+
 from omnigibson.tasks.behavior_task import BehaviorTask
 
 
@@ -21,3 +24,9 @@ class ADEPTTask(BehaviorTask):
         """加载 BDDL 绑定并设置自定义场景标识."""
         super()._load(env)
         self.scene_name = "adept_room"
+
+    def reset(self, env):
+        """恢复实例初态并清除上一回合的渲染历史."""
+        super().reset(env)
+        og.sim.sync_physx_to_fabric()
+        lazy.omni.usd.get_context().reset_renderer_accumulation()

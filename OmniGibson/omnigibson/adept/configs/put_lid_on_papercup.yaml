@@ -1,0 +1,37 @@
+instruction: Put the lid onto the paper cup.
+bindings:
+  agent.n.01_1: robot
+  table.n.02_1: work_table
+  dixie_cup.n.01_1: papercup
+  cap.n.02_1: cap
+objects:
+  - type: DatasetObject
+    name: papercup
+    category: paper_cup
+    model: guobeq
+    position: [0.8, 0.18, 1.0]
+    abilities:
+      fillable: {}
+      attachable: {}
+  - type: DatasetObject
+    name: cap
+    category: cap
+    model: iqeyba
+    position: [0.8, -0.18, 1.0]
+    abilities:
+      attachable: {}
+placements: {}
+sampling:
+  papercup:
+    xy_bounds: [[0.65, 0.05], [1.00, 0.35]]
+    yaw_degrees: [-180.0, 180.0]
+  cap:
+    xy_bounds: [[0.65, -0.35], [1.00, -0.05]]
+    yaw_degrees: [-180.0, 180.0]
+initial_state:
+  placements:
+    papercup: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0]}
+    cap: {support: work_table, orientation: [0.0, 0.0, 0.0, 1.0]}
+  parameters:
+    condition: upright paper cup and detached lid on the table
+    manipulated_objects: [papercup, cap]

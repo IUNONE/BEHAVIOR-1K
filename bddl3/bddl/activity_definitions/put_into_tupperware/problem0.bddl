@@ -1,0 +1,17 @@
+(define (problem put_into_tupperware-0)
+    (:domain behavior-1k)
+    (:objects
+        tupperware.n.01_1 - tupperware.n.01
+        bread_slice.n.01_1 - bread_slice.n.01
+        table.n.02_1 - table.n.02
+        agent.n.01_1 - agent.n.01
+    )
+    (:init
+        (ontop tupperware.n.01_1 table.n.02_1)
+        (ontop bread_slice.n.01_1 table.n.02_1)
+        (not (inside bread_slice.n.01_1 tupperware.n.01_1))
+    )
+    (:goal (and
+        (inside bread_slice.n.01_1 tupperware.n.01_1)
+    ))
+)

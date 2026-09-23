@@ -10,8 +10,8 @@ robot:
   position: [0.0, 0.0, 0.0]
   orientation: [0.0, 0.0, 0.0, 1.0]
 camera:
-  position: [1.7, -1.7, 1.8]
-  target: [0.8, 0.0, 0.85]
+  position: [1.03, 0.05, 1.8]
+  target: [0.0, 0.0, 1.0]
   image_height: 480
   image_width: 480
   horizontal_aperture: 40.0

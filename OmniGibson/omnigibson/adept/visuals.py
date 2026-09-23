@@ -10,7 +10,7 @@ CAMERA_LINKS = {"head": "zed_link", "left_wrist": "left_realsense_link", "right_
 
 
 def cameras(env):
-    """返回机器人三路相机与固定桌侧相机."""
+    """返回机器人三路相机与固定第三视角相机."""
     robot = env.robots[0]
     sensors = {role: robot.sensors[f"{robot.name}:{link}:Camera:0"] for role, link in CAMERA_LINKS.items()}
     sensors["table_side"] = env.external_sensors["table_side"]

@@ -1,12 +1,12 @@
 # ADEPT 双臂环境
 
-三个任务共用简单房间, 桌子, R1Pro 和固定桌侧相机. 代码针对 adept-sim 的单环境接口实现. 仿真生成, 检查, 采集和评估在 Linux GPU 服务器运行.
+三个任务共用简单房间, 桌子, R1Pro 和固定第三视角相机. 代码针对 adept-sim 的单环境接口实现. 仿真生成, 检查, 采集和评估在 Linux GPU 服务器运行.
 
 任务名:
 
 - pick_book_to_bookcase
-- put_object_in_hinged_jar
-- load_and_place_tray
+- put_into_tupperware
+- put_lid_on_papercup
 
 ## 环境与资产
 
@@ -18,24 +18,23 @@
 | --- | --- |
 | 桌子 | desk/iotfzl |
 | 书本 | hardback/aceozs |
-| 桌面书柜 | bookcase/iwziew |
-| 铰链罐 | hinged_jar/vzwhbg |
-| 装入物 | bratwurst/pqfrrn |
-| 托盘 | tray/gsxbym |
-| 装载物 | plate/xfjmld |
-| 托盘目标垫 | 固定薄型 PrimitiveObject, 类别 place_mat |
+| 桌面书柜 | bookcase/vndvrn |
+| 保鲜盒 | tupperware/mkstwr |
+| 装入物 | bread_slice/yremdf |
+| 纸杯 | paper_cup/guobeq |
+| 杯盖 | cap/iqeyba |
 
-配置位于 OmniGibson/omnigibson/adept/configs. common.yaml 定义房间, 桌子, 机器人开始位姿, 侧视相机和阈值. 三个任务 YAML 定义对象, BDDL 绑定和实例.
+配置位于 OmniGibson/omnigibson/adept/configs. common.yaml 定义房间, 桌子, 机器人开始位姿, 第三视角相机和阈值. 三个任务 YAML 定义对象, BDDL 绑定和实例.
 
-build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用原生 iwziew, 按底部高度对齐桌面并固定; 绿色目标垫固定在桌面另一侧. 物体采样避开这两类设施的占地. 布局与开口方向需要根据 check_env 画面确认. 当前代码未在本机执行仿真验证.
+build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用原生 vndvrn, 包围盒约为深 0.161 m, 宽 0.475 m, 高 0.300 m, 按底部高度对齐桌面并固定. 书本采样避开书柜占地. 书本固定使用 aceozs, 约 0.198×0.149×0.026 m. 保鲜盒任务使用敞口盒体和面包片 yremdf, 面包片约 0.129×0.100×0.028 m. 纸杯与杯盖均显式启用 attachable 能力, 使用资产中匹配的 iqeybaparent 连接标注. 容器内腔, 书柜开口和杯盖连接效果需要在服务器验证. 当前代码未在本机执行仿真验证.
 
 任务成功使用原生 BehaviorTask 的 BDDL goal 判定:
 
 | 任务 | 成功条件 |
 | --- | --- |
 | 书本 | inside(book, bookcase) |
-| 铰链罐 | inside(payload, jar) 且 not open(jar) |
-| 托盘 | ontop(payload, tray) 且 ontop(tray, target_pad) |
+| 保鲜盒 | inside(payload, tupperware) |
+| 纸杯盖 | attached(cap, papercup) |
 
 支撑手选择, 重抓方式和操作顺序由操作者自由执行. 超时终止沿用原生设置. 生成初态的稳定性检查用于筛选可加载的场景.
 
@@ -66,9 +65,9 @@ sampling:
 
 xy_bounds 是对象根坐标在场景世界坐标系中的 [xmin, ymin] 与 [xmax, ymax], 单位为米. yaw_degrees 是相对于 initial_state 基础姿态, 绕世界 Z 轴的旋转范围, 单位为度. 位置和朝向候选独立均匀采样, 高度根据当前姿态的包围盒及桌面支撑高度计算.
 
-机器人开始位姿和默认关节姿态固定, 底盘动作置零. 房间, 桌子, 桌面书柜, 相机及目标垫保持一致. 三个任务分别改变 book, jar 与 payload, tray 与 payload 的位置及 yaw.
+机器人开始位姿和默认关节姿态固定, 底盘动作置零. 房间, 桌子, 桌面书柜及相机保持一致. 三个任务分别改变 book, tupperware 与 payload, papercup 与 cap 的位置及 yaw.
 
-物理检查包括桌面边界, 物体与固定设施间距, 非支撑接触, BDDL 初始条件, 目标尚未满足, 物体速度及持续稳定性, 机器人位姿漂移. common.yaml 的 settle_steps 和 sampling_check_steps 定义生成阶段的落稳与检查窗口. 当前筛选未执行双臂 IK 或完整任务规划; 采样区域和铰链开盖空间需要通过实际操作确认.
+物理检查包括桌面边界, 物体与固定设施间距, 非支撑接触, BDDL 初始条件, 目标尚未满足, 物体速度及持续稳定性, 机器人位姿漂移. common.yaml 的 settle_steps 和 sampling_check_steps 定义生成阶段的落稳与检查窗口. 当前筛选未执行双臂 IK 或完整任务规划; 采样区域的可操作性需要通过实际操作确认.
 
 每个实例的候选随机种子为 seed + instance_id. 在相同配置下, 分批生成同一编号使用相同候选序列; 物理结果受仿真版本与运行平台影响. 达到尝试上限仍无有效初态时报告拒绝原因, 正式任务目录保留原状态. 全部采样和重新加载检查通过后才发布生成文件.
 
@@ -102,6 +101,8 @@ python -B -m omnigibson.eval.eval \
 
 每个实例只保存 outputs/adept/check_env/TASK_NAME/{instance_ID}_preview.mp4. 视频包含四路拼接画面, 默认 60 步, 30 FPS, 约 2 秒. 初始关系和稳定性检查结果在终端显示.
 
+ADEPT 在 reset 完成物体和机器人位姿恢复后, 将物理变换同步到 Fabric 并清除 RTX 渲染历史, 再由原生环境渲染新观测. 这使连续切换实例时的首帧与当前初态对应, 避免旧物体位置的残影进入视频. 该操作不增加动作步数.
+
 check_env 可通过 --max-steps 300 指定每个实例检查 300 步, 默认 30 Hz 下对应 10 秒. 省略该参数时读取 common.yaml 的 check_steps. 视频 FPS 使用实际 action_frequency; 默认动作和渲染频率为 30 Hz, 物理频率为 120 Hz. 修改 check_steps 不影响 build_env 的 sampling_check_steps.
 
 ## JoyLo 采集
@@ -118,7 +119,7 @@ python -B joylo/scripts/run_joylo.py
 
 HDF5 保留原生 action/state 和 transitions, 并在各 demo 属性中记录 instance_id 与 task_parameters. success 数据集逐步保存 BDDL 成功结果, 与 action 一一对应.
 
-检查点和回退使用 JoyLo 原生物理状态恢复流程. 中止和回退数据沿用 JoyLo 的保存流程. 头部, 双腕和固定桌侧相机均为 480×480 RGB, 采集期间保存动作和状态, 相机视频在回放时生成.
+检查点和回退使用 JoyLo 原生物理状态恢复流程. 中止和回退数据沿用 JoyLo 的保存流程. 头部, 双腕和固定第三视角相机均为 480×480 RGB, 采集期间保存动作和状态, 相机视频在回放时生成.
 
 ## 离线回放
 
@@ -132,7 +133,7 @@ python -B joylo/scripts/replay_data.py \
 
 回放使用原生 DataPlaybackWrapper, 逐帧恢复状态, 施加动作并渲染. 第一帧为初态, 后续帧分别对应源状态及其动作; frame_indices.json 明确标注 source_state_index, action_index 和源采样时间. 回放采用原生微小物理步长, 源时间来自采集频率. 四路视频采用相同帧序.
 
-侧视相机固定在场景坐标系. 回放读取 HDF5 中保存的相机配置, 保持已采集数据的视角可重复性. 修改 YAML 中的相机设置立即影响新的 check_env 和采集记录.
+第三视角相机固定在场景坐标系, 位于桌面书柜上方 [1.03, 0.05, 1.8], 朝向机器人 [0.0, 0.0, 1.0], 单位为米. 传感器名称沿用 table_side. 回放读取 HDF5 中保存的相机配置, 保持已采集数据的视角可重复性. 修改 YAML 中的相机设置立即影响新的 check_env 和采集记录.
 
 ## 策略评估
 
