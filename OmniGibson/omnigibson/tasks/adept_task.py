@@ -26,10 +26,9 @@ class ADEPTTask(BehaviorTask):
         self.scene_name = "adept_room"
 
     def reset(self, env):
-        """恢复实例初态, 清除渲染历史并在同一仿真时刻完成子帧渲染."""
+        """恢复实例初态, 清除渲染历史并通过仿真器刷新画面, 不推进物理步."""
         super().reset(env)
         og.sim.sync_physx_to_fabric()
         lazy.omni.usd.get_context().reset_renderer_accumulation()
-        lazy.omni.replicator.core.orchestrator.step(
-            rt_subframes=32, delta_time=0.0, pause_timeline=False,
-        )
+        for _ in range(32):
+            og.sim.render()

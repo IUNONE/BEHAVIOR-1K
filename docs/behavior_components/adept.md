@@ -111,7 +111,7 @@ python -B -m omnigibson.eval.eval \
 
 每个实例只保存 outputs/adept/check_env/TASK_NAME/{instance_ID}_preview.mp4. 视频包含四路拼接画面, 默认 60 步, 30 FPS, 约 2 秒. 初始关系和稳定性检查结果在终端显示.
 
-ADEPT 在 reset 完成物体和机器人位姿恢复后, 将物理变换同步到 Fabric 并清除 RTX 渲染历史, 随后通过 Replicator 完成 32 个渲染子帧. delta_time=0.0 保持当前仿真时刻, pause_timeline=False 保持后续运行状态. 这一步用于处理实例切换时物体瞬移引起的时序残影, 每次 reset 执行一次, 不增加动作步数或输出视频帧数. 原先仅清除渲染历史的处理经服务器反馈仍有残影; 当前子帧处理效果待服务器验证. 处理方式参考 [Isaac Sim 5.1 RT Subframes 文档](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/replicator_tutorials/tutorial_replicator_getting_started.html#rt-subframes-parameter).
+ADEPT 在 reset 完成物体和机器人位姿恢复后, 将物理变换同步到 Fabric 并清除 RTX 渲染历史, 随后调用原生 og.sim.render() 完成 32 次纯渲染更新. 该接口通过 OmniGibson 的仿真生命周期管理执行渲染, 不推进物理步. 这一步用于处理实例切换时物体瞬移引起的时序残影, 每次 reset 执行一次, 不增加动作步数或输出视频帧数. 当前残影处理效果待服务器验证.
 
 check_env 可通过 --max-steps 300 指定每个实例检查 300 步, 默认 30 Hz 下对应 10 秒. 省略该参数时读取 common.yaml 的 check_steps. 视频 FPS 使用实际 action_frequency; 默认动作和渲染频率为 30 Hz, 物理频率为 120 Hz. 修改 check_steps 不影响 build_env 的 sampling_check_steps.
 
