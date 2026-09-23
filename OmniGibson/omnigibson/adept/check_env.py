@@ -1,4 +1,6 @@
 from pathlib import Path
+import sys
+import traceback
 
 import torch as th
 
@@ -32,11 +34,18 @@ def run(args):
         for sensor in sensors:
             sensor["sensor_kwargs"].update(image_width=resolution, image_height=resolution)
         tile_size = (resolution, resolution)
+    stage = "creating environment"
     try:
+        print(f"check_env: {stage}", flush=True)
         env = og.Environment(configs=env_config)
+        stage = "configuring robot physics"
+        print(f"check_env: {stage}", flush=True)
         configure_robot_physics(env)
         for instance_id in args.instance_indices:
+            stage = f"loading instance {instance_id}"
+            print(f"check_env: {stage}", flush=True)
             load_instance(env, args.task_name, instance_id)
+            stage = f"checking and recording instance {instance_id}"
             video_path = Path(args.output_dir).expanduser() / "check_env" / args.task_name / f"{instance_id}_preview.mp4"
             report = initial_report(env)
             base = env.robots[0].get_position_orientation()[0].clone()
@@ -63,6 +72,11 @@ def run(args):
                                 and all(value <= config["thresholds"]["initial_object_drift"] for value in max_drift.values()))
             print(f"{args.task_name} instance {instance_id}: passed={report['passed']}, video={video_path}")
             failed |= not report["passed"]
+    except Exception:
+        print(f"check_env failed while {stage}:", file=sys.stderr, flush=True)
+        traceback.print_exc()
+        sys.stderr.flush()
+        raise
     finally:
         if og.app is not None:
             og.shutdown()
