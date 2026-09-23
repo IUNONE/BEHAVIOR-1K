@@ -16,17 +16,27 @@
 
 | 对象 | category/model |
 | --- | --- |
-| 桌子 | desk/iotfzl |
+| 桌子 | desk/tmluxa |
 | 书本 | hardback/aceozs |
 | 桌面书柜 | bookcase/vndvrn |
 | 保鲜盒 | tupperware/mkstwr |
-| 装入物 | bread_slice/yremdf |
+| 装入物 | croissant/xxsanu |
 | 纸杯 | paper_cup/guobeq |
 | 杯盖 | cap/iqeyba |
 
 配置位于 OmniGibson/omnigibson/adept/configs. common.yaml 定义房间, 桌子, 机器人开始位姿, 第三视角相机和阈值. 三个任务 YAML 定义对象, BDDL 绑定和实例.
 
-build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用原生 vndvrn, 包围盒约为深 0.161 m, 宽 0.475 m, 高 0.300 m, 按底部高度对齐桌面并固定. 书本采样避开书柜占地. 书本固定使用 aceozs, 约 0.198×0.149×0.026 m. 保鲜盒任务使用敞口盒体和面包片 yremdf, 面包片约 0.129×0.100×0.028 m. 纸杯与杯盖均显式启用 attachable 能力, 使用资产中匹配的 iqeybaparent 连接标注. 容器内腔, 书柜开口和杯盖连接效果需要在服务器验证. 当前代码未在本机执行仿真验证.
+小桌子的包围盒设为深 0.51 m, 宽 0.71 m, 高 0.70 m, XY 位置为 [0.73, 0.0], 生成时按底部对齐地面. 桌面书柜的 XY 位置为 [0.88, 0.0]. 书本在书柜前方采样, 其余两个任务的容器与装入物或盖子分置桌面左右两侧. 采样范围如下, 单位为米; 各对象 yaw 均在 [-180°, 180°] 中采样. 实际包围盒边界和间距由 build_env 检查, 机械臂可达性待服务器验证.
+
+| 对象 | X 范围 | Y 范围 |
+| --- | --- | --- |
+| 书本 | [0.61, 0.65] | [-0.20, 0.20] |
+| 保鲜盒 | [0.65, 0.80] | [0.13, 0.18] |
+| 羊角面包 | [0.59, 0.82] | [-0.23, -0.14] |
+| 纸杯 | [0.58, 0.82] | [0.10, 0.23] |
+| 杯盖 | [0.58, 0.82] | [-0.23, -0.10] |
+
+build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用原生 vndvrn, 包围盒约为深 0.161 m, 宽 0.475 m, 高 0.300 m, 按底部高度对齐桌面并固定. 书本采样避开书柜占地. 书本固定使用 aceozs, 约 0.198×0.149×0.026 m. 保鲜盒任务使用敞口盒体和羊角面包 xxsanu, 羊角面包约 0.117×0.080×0.055 m. 纸杯与杯盖均显式启用 attachable 能力, 使用资产中匹配的 iqeybaparent 连接标注. 容器内腔, 书柜开口和杯盖连接效果需要在服务器验证. 当前代码未在本机执行仿真验证.
 
 任务成功使用原生 BehaviorTask 的 BDDL goal 判定:
 
@@ -59,7 +69,7 @@ python -B -m omnigibson.adept.build_env \
 ```yaml
 sampling:
   book:
-    xy_bounds: [[0.61, -0.35], [0.73, 0.35]]
+    xy_bounds: [[0.61, -0.20], [0.65, 0.20]]
     yaw_degrees: [-180.0, 180.0]
 ```
 
@@ -101,7 +111,7 @@ python -B -m omnigibson.eval.eval \
 
 每个实例只保存 outputs/adept/check_env/TASK_NAME/{instance_ID}_preview.mp4. 视频包含四路拼接画面, 默认 60 步, 30 FPS, 约 2 秒. 初始关系和稳定性检查结果在终端显示.
 
-ADEPT 在 reset 完成物体和机器人位姿恢复后, 将物理变换同步到 Fabric 并清除 RTX 渲染历史, 再由原生环境渲染新观测. 这使连续切换实例时的首帧与当前初态对应, 避免旧物体位置的残影进入视频. 该操作不增加动作步数.
+ADEPT 在 reset 完成物体和机器人位姿恢复后, 将物理变换同步到 Fabric 并清除 RTX 渲染历史, 随后通过 Replicator 完成 32 个渲染子帧. delta_time=0.0 保持当前仿真时刻, pause_timeline=False 保持后续运行状态. 这一步用于处理实例切换时物体瞬移引起的时序残影, 每次 reset 执行一次, 不增加动作步数或输出视频帧数. 原先仅清除渲染历史的处理经服务器反馈仍有残影; 当前子帧处理效果待服务器验证. 处理方式参考 [Isaac Sim 5.1 RT Subframes 文档](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/replicator_tutorials/tutorial_replicator_getting_started.html#rt-subframes-parameter).
 
 check_env 可通过 --max-steps 300 指定每个实例检查 300 步, 默认 30 Hz 下对应 10 秒. 省略该参数时读取 common.yaml 的 check_steps. 视频 FPS 使用实际 action_frequency; 默认动作和渲染频率为 30 Hz, 物理频率为 120 Hz. 修改 check_steps 不影响 build_env 的 sampling_check_steps.
 
@@ -133,7 +143,7 @@ python -B joylo/scripts/replay_data.py \
 
 回放使用原生 DataPlaybackWrapper, 逐帧恢复状态, 施加动作并渲染. 第一帧为初态, 后续帧分别对应源状态及其动作; frame_indices.json 明确标注 source_state_index, action_index 和源采样时间. 回放采用原生微小物理步长, 源时间来自采集频率. 四路视频采用相同帧序.
 
-第三视角相机固定在场景坐标系, 位于桌面书柜上方 [1.03, 0.05, 1.8], 朝向机器人 [0.0, 0.0, 1.0], 单位为米. 传感器名称沿用 table_side. 回放读取 HDF5 中保存的相机配置, 保持已采集数据的视角可重复性. 修改 YAML 中的相机设置立即影响新的 check_env 和采集记录.
+第三视角相机固定在场景坐标系, 位于书柜后方的桌外上方 [1.65, 0.05, 1.9], 朝机器人方向俯视桌面, 观察目标为 [0.55, 0.0, 0.85], 单位为米. 该取景用于覆盖书柜和桌面操作区域, 减少顶部墙壁占比, 实际画面待服务器确认. 传感器名称沿用 table_side. 回放读取 HDF5 中保存的相机配置, 保持已采集数据的视角可重复性. 修改 YAML 中的相机设置立即影响新的 check_env 和采集记录.
 
 ## 策略评估
 

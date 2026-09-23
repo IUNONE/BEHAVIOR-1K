@@ -9,7 +9,7 @@ objects:
     name: papercup
     category: paper_cup
     model: guobeq
-    position: [0.8, 0.18, 1.0]
+    position: [0.70, 0.16, 1.0]
     abilities:
       fillable: {}
       attachable: {}
@@ -17,16 +17,16 @@ objects:
     name: cap
     category: cap
     model: iqeyba
-    position: [0.8, -0.18, 1.0]
+    position: [0.70, -0.16, 1.0]
     abilities:
       attachable: {}
 placements: {}
 sampling:
   papercup:
-    xy_bounds: [[0.65, 0.05], [1.00, 0.35]]
+    xy_bounds: [[0.58, 0.10], [0.82, 0.23]]
     yaw_degrees: [-180.0, 180.0]
   cap:
-    xy_bounds: [[0.65, -0.35], [1.00, -0.05]]
+    xy_bounds: [[0.58, -0.23], [0.82, -0.10]]
     yaw_degrees: [-180.0, 180.0]
 initial_state:
   placements:

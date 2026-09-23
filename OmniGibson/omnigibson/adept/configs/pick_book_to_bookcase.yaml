@@ -5,13 +5,13 @@ bindings:
   book.n.02_1: book
   bookcase.n.01_1: bookcase
 objects:
-  - {type: DatasetObject, name: book, category: hardback, model: aceozs, position: [0.8, 0.0, 1.0]}
-  - {type: DatasetObject, name: bookcase, category: bookcase, model: vndvrn, fixed_base: true, position: [1.03, 0.05, 1.0]}
+  - {type: DatasetObject, name: book, category: hardback, model: aceozs, position: [0.63, 0.0, 1.0]}
+  - {type: DatasetObject, name: bookcase, category: bookcase, model: vndvrn, fixed_base: true, position: [0.88, 0.0, 1.0]}
 placements:
-  bookcase: {xy: [1.03, 0.05], support: work_table, gap: 0.0, orientation: [0.0, 0.0, 0.0, 1.0]}
+  bookcase: {xy: [0.88, 0.0], support: work_table, gap: 0.0, orientation: [0.0, 0.0, 0.0, 1.0]}
 sampling:
   book:
-    xy_bounds: [[0.61, -0.35], [0.73, 0.35]]
+    xy_bounds: [[0.61, -0.20], [0.65, 0.20]]
     yaw_degrees: [-180.0, 180.0]
 initial_state:
   placements:
