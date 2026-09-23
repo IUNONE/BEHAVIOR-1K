@@ -1,0 +1,72 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    metersPerUnit = 1
+    upAxis = "Z"
+    customLayerData = { string copyright = "Extwin CopyRight 2025" }
+    subLayers = [@materials.usda@, @visual.usda@]
+)
+def Xform "root" {
+    def Xform "base_link" {
+        def Cube "collision_bottom" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+ double size = 1
+ bool physics:collisionEnabled = true
+ uniform token purpose = "guide"
+ double3 xformOp:translate = (0, 0, 0.01)
+ double3 xformOp:scale = (0.29, 0.415, 0.016)
+ uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+}
+def Cube "collision_top" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+ double size = 1
+ bool physics:collisionEnabled = true
+ uniform token purpose = "guide"
+ double3 xformOp:translate = (0, 0, 0.297)
+ double3 xformOp:scale = (0.29, 0.415, 0.016)
+ uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+}
+def Cube "collision_left" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+ double size = 1
+ bool physics:collisionEnabled = true
+ uniform token purpose = "guide"
+ double3 xformOp:translate = (0, -0.201, 0.1535)
+ double3 xformOp:scale = (0.29, 0.013, 0.271)
+ uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+}
+def Cube "collision_right" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+ double size = 1
+ bool physics:collisionEnabled = true
+ uniform token purpose = "guide"
+ double3 xformOp:translate = (0, 0.201, 0.1535)
+ double3 xformOp:scale = (0.29, 0.013, 0.271)
+ uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+}
+def Cube "collision_back" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+ double size = 1
+ bool physics:collisionEnabled = true
+ uniform token purpose = "guide"
+ double3 xformOp:translate = (0.138, 0, 0.1535)
+ double3 xformOp:scale = (0.014, 0.389, 0.271)
+ uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+}
+
+    }
+    def Xform "fillable" {
+        custom bool ig:isMetaLink = true
+        custom string ig:metaLinkType = "fillable"
+        custom string ig:metaLinkId = "0"
+        custom int ig:metaLinkSubId = 0
+        token visibility = "invisible"
+        def Cube "volume" {
+            double size = 1
+            double3 xformOp:translate = (-0.005, 0, 0.1535)
+            double3 xformOp:scale = (0.268, 0.385, 0.267)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+        }
+    }
+    def PhysicsFixedJoint "fillable_joint" {
+        rel physics:body0 = </root/base_link>
+        rel physics:body1 = </root/fillable>
+        point3f physics:localPos0 = (0, 0, 0)
+        point3f physics:localPos1 = (0, 0, 0)
+    }
+}

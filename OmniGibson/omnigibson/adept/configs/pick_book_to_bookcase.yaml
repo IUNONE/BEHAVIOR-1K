@@ -6,12 +6,12 @@ bindings:
   bookcase.n.01_1: bookcase
 objects:
   - {type: DatasetObject, name: book, category: hardback, model: aceozs, position: [0.67, 0.0, 1.0]}
-  - {type: DatasetObject, name: bookcase, category: bookcase, model: vndvrn, scale: 1.3, fixed_base: true, position: [0.99, 0.0, 1.0]}
+  - {type: ADEPTAssetObject, name: bookcase, category: bookcase, asset_path: custom_assets/cube_bookcase/bookcase.usda, abilities: {fillable: {}}, fixed_base: true, position: [0.965, 0.0, 1.0]}
 placements:
-  bookcase: {xy: [0.99, 0.0], support: work_table, gap: 0.0, orientation: [0.0, 0.0, 0.0, 1.0]}
+  bookcase: {xy: [0.965, 0.0], support: work_table, gap: 0.0, orientation: [0.0, 0.0, 0.0, 1.0]}
 sampling:
   book:
-    xy_bounds: [[0.61, -0.27], [0.73, 0.27]]
+    xy_bounds: [[0.61, -0.27], [0.675, 0.27]]
     yaw_degrees: [-180.0, 180.0]
 initial_state:
   placements:

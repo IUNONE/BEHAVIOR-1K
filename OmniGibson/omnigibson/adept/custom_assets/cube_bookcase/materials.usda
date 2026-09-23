@@ -1,0 +1,104 @@
+#usda 1.0
+
+def "root"
+{
+    def Scope "materials"
+    {
+        def Material "mat_AB585D7FB69F8225"
+        {
+            custom float opacity = 1
+            token outputs:surface.connect = </root/materials/mat_AB585D7FB69F8225/PBRShader.outputs:surface>
+
+            def Shader "PBRShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                float inputs:clearcoat = 0.05
+                float inputs:clearcoatRoughness = 0.05
+                color3f inputs:diffuseColor = (0.60382736, 0.60382736, 0.60382736)
+                color3f inputs:emissiveColor = (0, 0, 0)
+                float inputs:ior = 1
+                float inputs:opacity = 1
+                float inputs:roughness = 0.5
+                color3f inputs:specularColor = (0, 0, 0)
+                token outputs:surface
+            }
+        }
+
+        def Material "mat_738782A20A21FBAA"
+        {
+            string inputs:frame:stPrimvarName = "st"
+            custom float opacity = 1
+            token outputs:surface.connect = </root/materials/mat_738782A20A21FBAA/PBRShader.outputs:surface>
+
+            def Shader "PBRShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                float inputs:clearcoat = 0.05
+                float inputs:clearcoatRoughness = 0.05
+                color3f inputs:diffuseColor.connect = </root/materials/mat_738782A20A21FBAA/diffuseTexture.outputs:rgb>
+                color3f inputs:emissiveColor = (0, 0, 0)
+                float inputs:ior = 1.2222222
+                normal3f inputs:normal.connect = </root/materials/mat_738782A20A21FBAA/bumpTexture.outputs:rgb>
+                float inputs:opacity = 1
+                float inputs:roughness = 0.25
+                color3f inputs:specularColor = (0, 0, 0)
+                token outputs:surface
+            }
+
+            def Shader "stReader"
+            {
+                uniform token info:id = "UsdPrimvarReader_float2"
+                string inputs:varname.connect = </root/materials/mat_738782A20A21FBAA.inputs:frame:stPrimvarName>
+                float2 outputs:result
+            }
+
+            def Shader "transform_st"
+            {
+                uniform token info:id = "UsdTransform2d"
+                float2 inputs:in.connect = </root/materials/mat_738782A20A21FBAA/stReader.outputs:result>
+                float inputs:rotation = 0
+                float2 inputs:scale = (39.37008, 39.37008)
+                float2 inputs:translation = (0, 0)
+                float2 outputs:result
+            }
+
+            def Shader "diffuseTexture"
+            {
+                uniform token info:id = "UsdUVTexture"
+                asset inputs:file = @textures/wood_color.png@
+                float2 inputs:st.connect = </root/materials/mat_738782A20A21FBAA/transform_st.outputs:result>
+                token inputs:wrapS = "repeat"
+                token inputs:wrapT = "repeat"
+                float3 outputs:rgb
+            }
+
+            def Shader "bump_stReader"
+            {
+                uniform token info:id = "UsdPrimvarReader_float2"
+                string inputs:varname.connect = </root/materials/mat_738782A20A21FBAA.inputs:frame:stPrimvarName>
+                float2 outputs:result
+            }
+
+            def Shader "transform_bump_st"
+            {
+                uniform token info:id = "UsdTransform2d"
+                float2 inputs:in.connect = </root/materials/mat_738782A20A21FBAA/bump_stReader.outputs:result>
+                float inputs:rotation = 0
+                float2 inputs:scale = (39.37008, 39.37008)
+                float2 inputs:translation = (0, 0)
+                float2 outputs:result
+            }
+
+            def Shader "bumpTexture"
+            {
+                uniform token info:id = "UsdUVTexture"
+                asset inputs:file = @textures/wood_normal.png@
+                float2 inputs:st.connect = </root/materials/mat_738782A20A21FBAA/transform_bump_st.outputs:result>
+                token inputs:wrapS = "repeat"
+                token inputs:wrapT = "repeat"
+                float3 outputs:rgb
+            }
+        }
+    }
+}
+

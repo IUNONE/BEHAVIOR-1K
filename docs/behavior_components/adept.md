@@ -18,7 +18,7 @@
 | --- | --- |
 | 桌子 | desk/tmluxa |
 | 书本 | hardback/aceozs |
-| 桌面书柜 | bookcase/vndvrn |
+| 桌面书柜 | custom_assets/cube_bookcase/bookcase.usda |
 | 保鲜盒 | tupperware/mkstwr |
 | 装入物 | croissant/xxsanu |
 | 纸杯 | paper_cup/guobeq |
@@ -26,17 +26,17 @@
 
 配置位于 OmniGibson/omnigibson/adept/configs. common.yaml 定义房间, 桌子, 机器人开始位姿, 第三视角相机和阈值. 三个任务 YAML 定义对象, BDDL 绑定和实例.
 
-桌子沿用 tmluxa 模型, 包围盒设为深 0.65 m, 宽 0.95 m, 高 0.75 m, XY 位置为 [0.80, 0.0], 生成时按底部对齐地面. 桌面书柜的 XY 位置为 [0.99, 0.0]. 书本在书柜前方采样, 其余两个任务的容器与装入物或盖子分置桌面左右两侧. 采样范围如下, 单位为米; 各对象 yaw 均在 [-180°, 180°] 中采样. 实际包围盒边界和间距由 build_env 检查, 机械臂可达性待服务器验证.
+桌子沿用 tmluxa 模型, 包围盒设为深 0.65 m, 宽 0.95 m, 高 0.75 m, XY 位置为 [0.80, 0.0], 生成时按底部对齐地面. 桌面书柜的 XY 位置为 [0.965, 0.0]. 书本在书柜前方采样, 其余两个任务的容器与装入物或盖子分置桌面左右两侧. 采样范围如下, 单位为米; 各对象 yaw 均在 [-180°, 180°] 中采样. 实际包围盒边界和间距由 build_env 检查, 机械臂可达性待服务器验证.
 
 | 对象 | X 范围 | Y 范围 |
 | --- | --- | --- |
-| 书本 | [0.61, 0.73] | [-0.27, 0.27] |
+| 书本 | [0.61, 0.675] | [-0.27, 0.27] |
 | 保鲜盒 | [0.65, 0.85] | [0.13, 0.26] |
 | 羊角面包 | [0.59, 0.85] | [-0.28, -0.14] |
 | 纸杯 | [0.58, 0.85] | [0.10, 0.28] |
 | 杯盖 | [0.58, 0.85] | [-0.28, -0.10] |
 
-build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用 vndvrn 并等比例放大 1.3 倍, 包围盒约为深 0.209 m, 宽 0.617 m, 高 0.390 m, 按底部高度对齐桌面并固定. 书本采样避开书柜占地. 书本固定使用 aceozs, 约 0.198×0.149×0.026 m. 保鲜盒任务使用敞口盒体和羊角面包 xxsanu, 羊角面包约 0.117×0.080×0.055 m. 纸杯与杯盖均显式启用 attachable 能力, 使用资产中匹配的 iqeybaparent 连接标注. 容器内腔, 书柜开口和杯盖连接效果需要在服务器验证. 当前代码未在本机执行仿真验证.
+build_env 根据 YAML 的 initial_state 和 sampling 自动生成全部实例. 桌面书柜采用用户提供的 Movian 单格书柜, 包围盒约为深 0.290 m, 宽 0.415 m, 高 0.305 m, 按底部高度对齐桌面并固定. 书本采样避开书柜占地. 书本固定使用 aceozs, 约 0.198×0.149×0.026 m. 保鲜盒任务使用敞口盒体和羊角面包 xxsanu, 羊角面包约 0.117×0.080×0.055 m. 纸杯与杯盖均显式启用 attachable 能力, 使用资产中匹配的 iqeybaparent 连接标注. 容器内腔, 书柜开口和杯盖连接效果需要在服务器验证. 当前代码未在本机执行仿真验证.
 
 任务成功使用原生 BehaviorTask 的 BDDL goal 判定:
 
@@ -69,7 +69,7 @@ python -B -m omnigibson.adept.build_env \
 ```yaml
 sampling:
   book:
-    xy_bounds: [[0.61, -0.27], [0.73, 0.27]]
+    xy_bounds: [[0.61, -0.27], [0.675, 0.27]]
     yaw_degrees: [-180.0, 180.0]
 ```
 
@@ -162,3 +162,9 @@ ADEPT 的 train 与 check_env 均使用直接实例 ID. public_test/hidden_test 
 观测使用原生平铺键, 机器人名称为 robot, 另含 instruction, task_name, instance_id 及相机相对位姿. --policy local 使用保持当前姿态动作. --write-video 在评估时保存可回放 HDF5, 完成后按终端给出的命令离线生成视频. 该路径使用 30 Hz 采集频率.
 
 结果 JSON 包含 BDDL 成功状态, 满足和未满足的目标谓词, 超时状态和底盘位移. 当前场景与 BDDL 绑定已有更新, 服务器上已有场景应先通过 build_env --overwrite 重建, 再进行采集和回放.
+
+## 自定义书柜资产
+
+资产位于 OmniGibson/omnigibson/adept/custom_assets/cube_bookcase/, 包含 bookcase.usda, visual.usda, materials.usda 和 textures/ 下两张贴图. 原始来源为 Movian 1 locker MDF wood Shelf, Cube Bookcase, Beige, 41.5 x 29 x 30, 保留原始版权元数据. visual.usda 保留原网格和 UV, 烘焙原变换并将开口朝向世界 -X. 五块柜板采用独立盒形碰撞体, 内部 fillable 元链接提供原生 inside 判定体积. 内腔体积为保守近似, 实际碰撞与放书成功判定待服务器验证.
+
+YAML 使用 ADEPTAssetObject 和 asset_path: custom_assets/cube_bookcase/bookcase.usda. 路径以 adept 代码目录为基准, 与命令运行目录无关. 原生场景及 HDF5 的对象创建参数保存相对 asset_path, 重新加载时在目标机器解析. USD 内部材质与贴图也使用相对引用. 更换资产后需要 build_env --overwrite 重建.
