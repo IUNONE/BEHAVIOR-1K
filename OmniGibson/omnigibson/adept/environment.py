@@ -102,6 +102,7 @@ def build_environment_config(task_name, purpose="check_env", instance_id=1, max_
             "activity_name": task_name,
             "activity_instance_id": instance_id,
             "parameters": parameters,
+            "book_pose_goal": config.get("book_pose_goal"),
             "termination_config": {"max_steps": config["max_steps"] if max_steps is None else max_steps},
             "include_obs": False,
         },
@@ -170,7 +171,7 @@ def initial_report(env):
 
     task = env.task
     valid, conditions = evaluate_state(task.activity_initial_conditions, task._evaluate_predicate)
-    goal, _ = task.compiled_task.check_goal(task._evaluate_predicate)
+    goal, _ = task.check_goal()
     objects = {}
     for name, obj in task.object_scope.items():
         objects[name] = {

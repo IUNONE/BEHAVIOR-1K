@@ -1,4 +1,4 @@
-instruction: Put the book into the tabletop bookcase.
+instruction: Place the book upright in the tabletop bookcase with its spine facing outward.
 bindings:
   agent.n.01_1: robot
   table.n.02_1: work_table
@@ -19,3 +19,9 @@ initial_state:
   parameters:
     condition: book on table outside a fixed tabletop bookcase
     manipulated_objects: [book]
+book_pose_goal:
+  long_axis: [1.0, 0.0, 0.0]
+  spine_outward_axis: [0.0, -1.0, 0.0]
+  cabinet_outward_axis: [-1.0, 0.0, 0.0]
+  upright_tolerance_degrees: 15.0
+  facing_tolerance_degrees: 20.0
