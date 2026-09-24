@@ -227,3 +227,16 @@ sudo apt install libhidapi-hidraw0
 ## JoyCon Button Mapping
 
 ![Joycon instruction](https://github.com/user-attachments/assets/2e7d57d7-66be-490b-aa76-4d6f9b2ede52)
+
+## Custom assembly viewers (adept-sim)
+
+The JoyLo / R1 Pro and Mobile Nero viewers, CAD sources, models, and supporting
+scripts migrated from `brs-ctrl` are documented in [VIEWER.md](VIEWER.md).
+Run the viewer commands from this `joylo/` directory. These viewers do not connect
+to motors and their displayed zero positions are not encoder calibration.
+
+### Single-arm joint calibration (adept-sim)
+
+`calibrate_joints.py --arm right` reads only right-arm motor IDs (9–17 for R1Pro).
+See [右臂标定步骤与配置格式](RIGHT_ARM_CALIBRATION.md). The original teleoperation
+client still requires both arms; single-arm calibration is a separate first step.

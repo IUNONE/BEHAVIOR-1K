@@ -1,165 +1,127 @@
-# Script for automatically calibrating a JoyLo set
-# Refer to the README for the correct arm positions for calibration
+"""Calibrate one or both JoyLo arms using the reference poses in ../imgs."""
 
-from gello.utils.dynamixel_utils import DynamixelDriver
-import numpy as np
-import sys
 from dataclasses import dataclass
-import yaml
-import tyro
-import os
+from pathlib import Path
+from typing import Literal
 
-CONFIG_DIR = f"{os.path.dirname(__file__)}/../configs"
-os.makedirs(CONFIG_DIR, exist_ok=True)
+import numpy as np
+import tyro
+import yaml
+
+CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
+IMAGE_DIR = CONFIG_DIR.parent / "imgs"
+
 
 @dataclass
 class Args:
     gello_name: str = "default"
-    """The name of the gello (used to determine which file to write to)"""
-
+    """Configuration name; single-arm defaults become default_left/default_right."""
     port: str = "/dev/ttyUSB0"
-    """The port that GELLO is connected to."""
-
     baudrate: int = 2000000
-    """The baudrate of the connected GELLO's dynamixel board."""
-    
-    robot: str = "R1Pro" # "R1" or "R1Pro"
-    """The robot type. This is used to determine the number of joints."""
-    
-
-def pretty_print_list(items: list[float]) -> None:
-    for x in items:
-        print(f"{x:>10.4f}", end=' ')
-    print('')
+    robot: Literal["R1", "R1Pro"] = "R1Pro"
+    arm: Literal["both", "left", "right"] = "both"
+    overwrite: bool = False
+    """Replace an existing calibration file."""
 
 
-def get_joint_angles_L(driver: DynamixelDriver, num_joints_per_arm: int) -> np.ndarray:
-    return np.rad2deg(driver.get_joints()[:num_joints_per_arm])
-
-
-def get_joint_angles_R(driver: DynamixelDriver, num_joints_per_arm: int) -> np.ndarray:
-    return np.rad2deg(driver.get_joints()[num_joints_per_arm:])
-
-
-def compute_joint_offsets_and_signs(joints_1: np.ndarray,
-                                    joints_2: np.ndarray,
-                                    robot_name: str)-> tuple[np.ndarray, np.ndarray]:
-    """
-    Computes the joints signs and offsets given the measured angles at two known positions 
-    (for now, fixed in code to be a cannonical "zero" position, and a second "calibration" 
-    position)
-
-    Returns:
-        signs (np.ndarray)
-        offsets (np.ndarray)
-    """
+def reference_positions(robot_name: str, arm: str = "both"):
     if robot_name == "R1":
-        # Hard-coded for now, could make an argument in the future
-        expected_positions_1 = np.array([0, 0, 45, 45, -45, 0, 0, 0,
-                                        0, 0, 45, 45, -45, 0, 0, 0])
-        expected_positions_2 = np.array([90, 90, 180, 180, -180, 90, 90, -90,
-                                        -90, -90, 180, 180, -180, -90, -90, 90])
+        zero = np.array([0, 0, 45, 45, -45, 0, 0, 0] * 2)
+        calibration = np.array([90, 90, 180, 180, -180, 90, 90, -90,
+                                -90, -90, 180, 180, -180, -90, -90, 90])
     elif robot_name == "R1Pro":
-        expected_positions_1 = np.zeros(18)
-        expected_positions_2 = np.array([-90, -90, 90, 90, -90, -90, 90, 60, 90,
-                                        -90, -90, -90, -90, 90, -90, -90, 60, -90])
+        zero = np.zeros(18)
+        calibration = np.array([-90, -90, 90, 90, -90, -90, 90, 60, 90,
+                                -90, -90, -90, -90, 90, -90, -90, 60, -90])
     else:
-        raise ValueError("Robot name must be either R1 or R1Pro")
+        raise ValueError("Robot must be R1 or R1Pro")
+    half = len(zero) // 2
+    selection = {"both": slice(None), "left": slice(0, half), "right": slice(half, None)}[arm]
+    ids = list(range(len(zero)))[selection]
+    return ids, zero[selection], calibration[selection]
 
-    # Compute signs by comparing measured and expected delta between positions
+
+def compute_joint_offsets_and_signs(joints_1, joints_2, robot_name, arm="both"):
+    ids, expected_1, expected_2 = reference_positions(robot_name, arm)
+    joints_1, joints_2 = np.asarray(joints_1), np.asarray(joints_2)
+    if joints_1.shape != expected_1.shape or joints_2.shape != expected_2.shape:
+        raise ValueError(f"Expected {len(ids)} motor readings for {arm}")
+    if not np.all(np.isfinite([joints_1, joints_2])):
+        raise ValueError("Non-finite motor readings")
     delta = joints_2 - joints_1
-    expected_delta = expected_positions_2 - expected_positions_1
-    
+    expected_delta = expected_2 - expected_1
+    unmoved = np.abs(delta) < 1.0
+    if np.any(unmoved):
+        raise ValueError(f"Motors barely moved between poses: {np.array(ids)[unmoved].tolist()}")
     signs = np.sign(delta / expected_delta)
-    
-    # Compute offsets by subtracting expected position and accounting for sign
-    def round_to_90(x: np.ndarray) -> np.ndarray:
-        """ Round all elements to the nearest multiple of 90 degrees """
-        return 90 * np.rint(x / 90)
-    
-    offsets_1 = round_to_90(joints_1 - signs * expected_positions_1)
-    offsets_2 = round_to_90(joints_2 - signs * expected_positions_2)
-    
-    # Exit if these offsets are not equal
-    if not np.all(offsets_1 == offsets_2):
-        print("WARNING: The joint offsets at the two positions don't seem to match!")
-        print("         Are you sure that you positioned the robot correctly?")
-        print("")
-        print("         Try re-running this script and placing the arms at the correct")
-        print("         positions for calibration!")
-        sys.exit(1)
-    
+    # Preserve the upstream assumption: assembly offsets are multiples of 90 degrees.
+    offsets_1 = 90 * np.rint((joints_1 - signs * expected_1) / 90)
+    offsets_2 = 90 * np.rint((joints_2 - signs * expected_2) / 90)
+    mismatched = offsets_1 != offsets_2
+    if np.any(mismatched):
+        raise ValueError(
+            f"Reference poses disagree for motor IDs {np.array(ids)[mismatched].tolist()}. "
+            "Check both poses and repeat; do not change motor offsets to force a pass."
+        )
     return signs, offsets_1
-            
 
-def main(args: Args) -> None:
-    assert args.robot in ["R1", "R1Pro"], "Robot type must be either R1 or R1Pro"
-    
-    num_joints = 18 if args.robot == "R1Pro" else 16
-    num_joints_per_arm = num_joints // 2
 
-    joint_ids = list(range(num_joints))
-    driver = DynamixelDriver(ids=joint_ids, port=args.port, baudrate=args.baudrate)
+def main(args: Args):
+    name = args.gello_name
+    if not name or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in name):
+        raise ValueError("Use letters, digits, '_' or '-' for --gello-name")
+    if args.arm != "both" and name == "default":
+        name = f"default_{args.arm}"
+    output = CONFIG_DIR / f"joint_config_{name}.yaml"
+    if output.exists() and not args.overwrite:
+        raise FileExistsError(f"{output} already exists. Choose another name or pass --overwrite.")
+    ids, expected_1, expected_2 = reference_positions(args.robot, args.arm)
+    print(f"Robot: {args.robot}; arm: {args.arm}; motor IDs: {ids}")
+    print(f"Port: {args.port}; baudrate: {args.baudrate}; output: {output}")
+    input("Close DYNAMIXEL Wizard and support the arm(s). Torque will be disabled. Press Enter to connect:")
 
-    # Initialize arrays to store joint angles
-    joint_angles_pos_1 = np.zeros(num_joints)
-    joint_angles_pos_2 = np.zeros(num_joints)
+    from gello.utils.dynamixel_utils import DynamixelDriver
 
-    # Warm up dynamixel driver
-    for _ in range(10):
-        driver.get_joints()
+    driver = DynamixelDriver(ids=ids, port=args.port, baudrate=args.baudrate)
+    try:
+        # Existing driver only disables torque on initialization; no position commands are sent here.
+        first, second = np.zeros(len(ids)), np.zeros(len(ids))
+        sides = ("left", "right") if args.arm == "both" else (args.arm,)
+        per_arm = 9 if args.robot == "R1Pro" else 8
+        image_prefix = "R1pro" if args.robot == "R1Pro" else "R1"
+        for i, side in enumerate(sides):
+            section = slice(i * per_arm, (i + 1) * per_arm)
+            for pose, values in (("zero", first), ("calibration", second)):
+                photo = IMAGE_DIR / f"{image_prefix}_{pose}_{side[0].upper()}.jpg"
+                print(f"\n{side.upper()} {pose} reference: {photo}")
+                input("Place the arm in this pose, hold still, then press Enter to record:")
+                values[section] = np.rad2deg(driver.get_joints())[section]
+                print(f"IDs {ids[section]}: {np.round(values[section], 2).tolist()} degrees")
+    finally:
+        driver.close()
 
-    print("=======================")
-    print("GELLO Joint Calibration")
-    print("=======================")
-    print('')
-
-    # Gather data for the left arm
-    print("Now Calibrating LEFT arm...")
-    print("Place the LEFT arm in the zero position and press enter!", end ='')
-    input()
-    joint_angles_pos_1[:num_joints_per_arm] = get_joint_angles_L(driver, num_joints_per_arm)
-
-    print("Place the LEFT arm in the calibration position and press enter!", end ='')
-    input()
-    joint_angles_pos_2[:num_joints_per_arm] = get_joint_angles_L(driver, num_joints_per_arm)
-    
-    # Gather data for the right arm
-    print("\n\nNow Calibrating RIGHT arm...")
-    print("\nPlace the RIGHT arm in the zero position and press enter...", end ='')
-    input()
-    joint_angles_pos_1[num_joints_per_arm:] = get_joint_angles_R(driver, num_joints_per_arm)
-
-    print("Place the RIGHT arm in the calibration position and press enter!", end ='')
-    input()
-    joint_angles_pos_2[num_joints_per_arm:] = get_joint_angles_R(driver, num_joints_per_arm)
-
-    # Compute offsets and angles 
-    signs, offsets = compute_joint_offsets_and_signs(joint_angles_pos_1, joint_angles_pos_2, args.robot)
-
-    print("")
-    print("Successfully calibrated your GELLO:")
-    print("Signs:")
-    pretty_print_list(signs)
-    print("Offsets:")
-    pretty_print_list(offsets)
-    
-    # Write to output_file
-    joint_data = {
-        "joints": {
-            "offsets": [float(x) for x in offsets], # Needed so we have default float type
-            "signs": [float(x) for x in signs], # Needed so we have default float type
-        }
+    signs, offsets = compute_joint_offsets_and_signs(first, second, args.robot, args.arm)
+    data = {
+        "robot": args.robot,
+        "arm": args.arm,
+        "angle_unit": "degrees",
+        "joints": {"ids": ids, "offsets": offsets.tolist(), "signs": signs.astype(int).tolist()},
+        "calibration": {
+            "method": "two_reference_poses_90_degree_offsets",
+            "measured_zero_deg": first.tolist(),
+            "measured_calibration_deg": second.tolist(),
+            "expected_zero_deg": expected_1.tolist(),
+            "expected_calibration_deg": expected_2.tolist(),
+        },
     }
-    
-    output_filename = f"{CONFIG_DIR}/joint_config_{args.gello_name}.yaml"
-    
-    with open(output_filename, "w+") as file:
-        yaml.dump(joint_data, file, default_flow_style=False)
-    
-    print("")
-    print(f"Joint offsets and signs have been saved to configs/joint_config_{args.gello_name}.yaml!")
-    print("")
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    with output.open("w" if args.overwrite else "x") as file:
+        yaml.safe_dump(data, file, sort_keys=False)
+    print(f"\nSaved: {output}")
+    print(f"Signs: {data['joints']['signs']}\nOffsets (degrees): {offsets.tolist()}")
+    if args.arm != "both":
+        print("Single-arm configuration: the original run_joylo.py/test_joints.py still require both arms.")
+    print("Next: verify measured joint angles against physical motion before teleoperation.")
 
 
 if __name__ == "__main__":

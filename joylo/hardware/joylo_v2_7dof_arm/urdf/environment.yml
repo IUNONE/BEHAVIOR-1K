@@ -1,0 +1,13 @@
+name: joylo-urdf
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - matplotlib
+  - trimesh
+  - scipy
+  - networkx
+  - yourdfpy=0.0.60
+  - viser=0.2.23
+  - pycollada=0.9.3

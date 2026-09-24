@@ -1,0 +1,194 @@
+{
+  "status": "user_selected_assembly_id_plan",
+  "legacy_confirmed_ranges": {
+    "left": [
+      0,
+      7
+    ],
+    "right": [
+      8,
+      15
+    ]
+  },
+  "proposed_7dof_ranges": {
+    "left": [
+      0,
+      8
+    ],
+    "right": [
+      9,
+      17
+    ]
+  },
+  "motors": [
+    {
+      "side": "left",
+      "motor_id": 0,
+      "joint": 1,
+      "visual": "left_rear_shoulder_motor",
+      "role": "主电机候选 / rear",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 1,
+      "joint": 1,
+      "visual": "left_shoulder_motor",
+      "role": "从电机候选 / front",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 2,
+      "joint": 2,
+      "visual": "left_shoulder_pair_a",
+      "role": "A侧，主从待核对",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 3,
+      "joint": 2,
+      "visual": "left_shoulder_pair_b",
+      "role": "B侧，主从待核对",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 4,
+      "joint": 3,
+      "visual": "left_upper_arm_motor",
+      "role": "上臂旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 5,
+      "joint": 4,
+      "visual": "left_elbow_motor",
+      "role": "肘关节",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 6,
+      "joint": 5,
+      "visual": "left_forearm_motor",
+      "role": "前臂旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 7,
+      "joint": 6,
+      "visual": "left_wrist_bend_motor",
+      "role": "腕关节 / 带背面惰轮",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "left",
+      "motor_id": 8,
+      "joint": 7,
+      "visual": "left_wrist_rotation_motor",
+      "role": "末端旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 9,
+      "joint": 1,
+      "visual": "right_rear_shoulder_motor",
+      "role": "主电机候选 / rear",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 10,
+      "joint": 1,
+      "visual": "right_shoulder_motor",
+      "role": "从电机候选 / front",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 11,
+      "joint": 2,
+      "visual": "right_shoulder_pair_a",
+      "role": "A侧，主从待核对",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 12,
+      "joint": 2,
+      "visual": "right_shoulder_pair_b",
+      "role": "B侧，主从待核对",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 13,
+      "joint": 3,
+      "visual": "right_upper_arm_motor",
+      "role": "上臂旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 14,
+      "joint": 4,
+      "visual": "right_elbow_motor",
+      "role": "肘关节",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 15,
+      "joint": 5,
+      "visual": "right_forearm_motor",
+      "role": "前臂旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 16,
+      "joint": 6,
+      "visual": "right_wrist_bend_motor",
+      "role": "腕关节 / 带背面惰轮",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    },
+    {
+      "side": "right",
+      "motor_id": 17,
+      "joint": 7,
+      "visual": "right_wrist_rotation_motor",
+      "role": "末端旋转",
+      "placement_confirmed": false,
+      "raw_zero_tick": null
+    }
+  ],
+  "sources": [
+    "scripts/joylo/sim_joylo.py",
+    "brs_ctrl/joylo/joylo_arms/joylo_arms.py",
+    "brs_ctrl/joylo/joylo_arms/dxl/position.py",
+    "https://behavior-robot-suite.github.io/docs/sections/joylo/setup_and_calibration.html"
+  ],
+  "hardware_ids_written": false
+}

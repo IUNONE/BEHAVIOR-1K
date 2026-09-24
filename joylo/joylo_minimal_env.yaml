@@ -1,0 +1,37 @@
+# Run from ~/BEHAVIOR-1K/joylo:
+#   conda env create -f joylo_minimal_env.yaml
+#   conda activate joylo-minimal
+#   python -m pip install --no-deps -e .
+# The last command registers the local gello package without pulling in the
+# full teleoperation dependency set. No simulator is required.
+name: joylo-minimal
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - setuptools>=61
+  - wheel
+  - numpy<2
+  - pyyaml
+
+  # Existing Viser / URDF viewer and model generation environment.
+  - matplotlib
+  - trimesh
+  - scipy
+  - networkx
+  - yourdfpy=0.0.60
+  - viser=0.2.23
+  - pycollada=0.9.3
+
+  # Native HID library for Nintendo Joy-Con access.
+  - hidapi
+  - pip:
+      # Motor calibration, serial communication and command-line arguments.
+      - dynamixel-sdk
+      - pyserial
+      - tyro
+      # Nintendo Joy-Con joystick calibration.
+      - hid
+      - joycon-python
+      - pyglm

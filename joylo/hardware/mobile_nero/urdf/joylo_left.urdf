@@ -1,0 +1,502 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="joylo_left_7dof">
+  <!--Reconstructed visualization model, NOT an author-supplied or calibrated robot model. SI units. See README.md. No dynamics or collision model. Joint limits are display ranges only.-->
+  <link name="base_link">
+    <visual name="mount_printed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../mount.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="base">
+        <color rgba="0.3 0.34 0.4 1" />
+      </material>
+    </visual>
+    <visual name="shoulder_motor">
+      <origin xyz="0 0.0115 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.034 0.023 0.02" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l2">
+    <visual name="l2_printed">
+      <origin xyz="-0 -0 -0.0075" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../l2.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l2">
+        <color rgba="0.2 0.47 0.74 1" />
+      </material>
+    </visual>
+    <visual name="shoulder_pair_a">
+      <origin xyz="-0.0115 0 0.0215" rpy="0 0 0" />
+      <geometry>
+        <box size="0.023 0.02 0.034" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="shoulder_pair_b">
+      <origin xyz="0.0115 0 0.0215" rpy="0 0 0" />
+      <geometry>
+        <box size="0.023 0.02 0.034" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="l2_horn_0">
+      <origin xyz="0 0 -0.0012" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l3">
+    <!--Bracket facing correction: rotate housing and seated J3 motor 180 degrees about local Z output spindle; joint frames and downstream mounting phase retained.-->
+    <visual name="l3_printed">
+      <origin xyz="-2.828934106030386e-18 -0.0231 0" rpy="0 0 3.141592653589793" />
+      <geometry>
+        <mesh filename="../l3.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l3">
+        <color rgba="0.18 0.66 0.66 1" />
+      </material>
+    </visual>
+    <visual name="upper_arm_motor">
+      <origin xyz="0.0075 -9.184850993605148e-19 0.031008" rpy="0 0 3.141592653589793" />
+      <geometry>
+        <box size="0.034 0.02 0.023" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="l3_horn_0">
+      <origin xyz="-3.184081677783118e-18 -0.026 0" rpy="1.57079633 0 3.141592653589793" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+    <visual name="l3_horn_1">
+      <origin xyz="3.184081677783118e-18 0.026 0" rpy="1.57079633 0 3.141592653589793" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l4">
+    <!--Photo assembly correction: mounted visuals rotated +90 about local J3 Y. J3 origin, axis and reference angle stay unchanged; J4 attachment follows the housing.-->
+    <visual name="l4_printed">
+      <origin xyz="0 -0.0024 0" rpy="-0 1.570796326794897 0" />
+      <geometry>
+        <mesh filename="../l4.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l4">
+        <color rgba="0.34 0.66 0.38 1" />
+      </material>
+    </visual>
+    <visual name="elbow_motor">
+      <!--Housing-only +90 degrees about world vertical at the default pose, pivot at case center; baked into link-local visual orientation.-->
+      <origin xyz="0 0.0891 0" rpy="3.205103666463755e-09 0 -3.205103365384603e-09" />
+      <geometry>
+        <box size="0.02 0.034 0.023" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="l4_horn_0">
+      <origin xyz="0 -0.0012 0" rpy="1.57079633 1.570796326794897 0" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l5">
+    <visual name="l5_printed">
+      <origin xyz="0 -0.043 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../l5.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l5">
+        <color rgba="0.89 0.63 0.2 1" />
+      </material>
+    </visual>
+    <visual name="forearm_motor">
+      <origin xyz="0 -0.028385 0.0075" rpy="0 0 0" />
+      <geometry>
+        <box size="0.02 0.023 0.034" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="l5_horn_0">
+      <origin xyz="-0.0144 0 0" rpy="-0 1.57079633 0" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+    <visual name="l5_horn_1">
+      <origin xyz="0.0144 0 0" rpy="-0 1.57079633 0" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l6">
+    <visual name="l6_printed">
+      <origin xyz="-0 -0.0024 -0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../l6.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l6">
+        <color rgba="0.89 0.39 0.28 1" />
+      </material>
+    </visual>
+    <visual name="l6_horn_0">
+      <origin xyz="0 -0.0012 0" rpy="1.57079633 0 0" />
+      <geometry>
+        <cylinder radius="0.0081" length="0.0024" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="l7">
+    <visual name="l7_printed">
+      <origin xyz="-0.01 -0.0125 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../l7.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l7">
+        <color rgba="0.56 0.41 0.72 1" />
+      </material>
+    </visual>
+    <visual name="wrist_bend_motor">
+      <origin xyz="0 0.0075 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.02 0.034 0.023" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="wrist_rotation_motor">
+      <origin xyz="-0.021627 0.0075 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.023 0.034 0.02" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+    <visual name="j6_idler_axle">
+      <origin xyz="0 0 -0.013" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.003" length="0.003" />
+      </geometry>
+      <material name="j6_axle_dark">
+        <color rgba="0.28 0.30 0.33 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="ljc">
+    <visual name="ljc_printed">
+      <origin xyz="0.05 -0.0252 -0.125307" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../ljc.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="ljc">
+        <color rgba="0.81 0.39 0.62 1" />
+      </material>
+    </visual>
+    <visual name="ljc_horn_0">
+      <origin xyz="0 0 -0.0015" rpy="0 0 0" />
+      <geometry>
+        <cylinder radius="0.008" length="0.003" />
+      </geometry>
+      <material name="horn">
+        <color rgba="0.7 0.73 0.76 1" />
+      </material>
+    </visual>
+  </link>
+  <link name="mountback">
+    <visual name="mountback_printed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../mountback.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="base">
+        <color rgba="0.3 0.34 0.4 1" />
+      </material>
+    </visual>
+    <visual name="rear_shoulder_motor">
+      <origin xyz="0 0.0115 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.034 0.023 0.02" />
+      </geometry>
+      <material name="motor">
+        <color rgba="0.13 0.15 0.18 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="mountback_fixed" type="fixed">
+    <parent link="base_link" />
+    <child link="mountback" />
+    <origin xyz="0 -0.01 0" rpy="3.14159265 0 0" />
+  </joint>
+  <link name="l2back">
+    <visual name="l2back_printed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../l2back.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="l2">
+        <color rgba="0.2 0.47 0.74 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="shoulder_coupling_fixed" type="fixed">
+    <parent link="l2" />
+    <child link="l2back" />
+    <origin xyz="0 0 -0.0555" rpy="3.14159265 0 0" />
+  </joint>
+  <!--Shoulder axis; XL330 spindle inferred from socket and 62 mm back-to-back spindle separation.-->
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link" />
+    <child link="l2" />
+    <origin xyz="0.0075 0.026 0" rpy="-1.57079633 0 0" />
+    <axis xyz="0 0 1" />
+    <limit lower="-4.415693415" upper="1.274093415" effort="1" velocity="1" />
+  </joint>
+  <!--Two coaxial shoulder motors are one DOF. l3 plate inner faces are 52 mm apart.-->
+  <joint name="joint_2" type="revolute">
+    <parent link="l2" />
+    <child link="l3" />
+    <origin xyz="0 0 0.029" rpy="-1.57079633 -1.57079633 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-1.57079632679" upper="3.106693415" effort="1" velocity="1" />
+  </joint>
+  <!--Upper-arm axial joint. l3 rear mounting face z=19.508; assumed case depth 23 plus horn offset 3 mm.-->
+  <joint name="joint_3" type="revolute">
+    <parent link="l3" />
+    <child link="l4" />
+    <origin xyz="0 0 0.045508" rpy="1.5707963267948966 -3.2051032938795743e-09 1.5707963267948966" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.321289415" upper="2.321289415" effort="1" velocity="1" />
+  </joint>
+  <!--Elbow. l4 motor seating plane y=74.5, spindle +24.5. l5 hole circle center y=43.-->
+  <joint name="joint_4" type="revolute">
+    <!--J4 spindle corrected from body fore-aft to lateral at reference pose; child carrier follows motor output, green l4 unchanged.-->
+    <parent link="l4" />
+    <child link="l5" />
+    <origin xyz="0 0.09660000000000001 0" rpy="3.14159265 -1.5707963235897935 0.0" />
+    <axis xyz="1 0 0" />
+    <limit lower="-2.059493415" upper="0.314193415" effort="1" velocity="1" />
+  </joint>
+  <!--Forearm axial joint. l5 rear face y=26.115 minus 26 mm to spindle face; spindle z=15.-->
+  <joint name="joint_5" type="revolute">
+    <parent link="l5" />
+    <child link="l6" />
+    <origin xyz="0 -0.042885 0.015" rpy="3.14159265 0 0" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.321289415" upper="2.321289415" effort="1" velocity="1" />
+  </joint>
+  <!--Wrist photo-reference: J6 spindle native l7 (10,12.5,0), J7 output (-26.127,12.5,0). Both bodies extend toward forearm. J7 carrier mounting phase -90 degrees about output axis, replacing previous +180. Approximate screenshot reference, not encoder calibration.-->
+  <joint name="joint_6" type="revolute">
+    <parent link="l6" />
+    <child link="l7" />
+    <origin xyz="0 0.0736 0" rpy="1.5707963267948966 0 1.5707963267948966" />
+    <axis xyz="0 0 1" />
+    <limit lower="0" upper="3.14159265359" effort="1" velocity="1" />
+  </joint>
+  <!--Wrist photo-reference: J6 spindle native l7 (10,12.5,0), J7 output (-26.127,12.5,0). Both bodies extend toward forearm. J7 carrier mounting phase -90 degrees about output axis, replacing previous +180. Approximate screenshot reference, not encoder calibration.-->
+  <joint name="joint_7" type="revolute">
+    <parent link="l7" />
+    <child link="ljc" />
+    <origin xyz="-0.036127 0 0" rpy="1.5707963267948966 0 -1.5707963267948966" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.57079632679" upper="1.57079632679" effort="1" velocity="1" />
+  </joint>
+  <link name="j6_output_flange">
+    <visual name="j6_output_flange">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="support/j6_output_flange.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="j6_output_flange_color">
+        <color rgba="0.86 0.60 0.18 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="j6_output_flange_fixed" type="fixed">
+    <parent link="l6" />
+    <child link="j6_output_flange" />
+    <origin xyz="0.013 0.0736 0" rpy="0 1.5707963267948966 0" />
+  </joint>
+  <link name="j6_passive_idler">
+    <visual name="j6_passive_idler">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="support/j6_passive_idler.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="j6_passive_idler_color">
+        <color rgba="0.15 0.65 0.90 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="j6_passive_idler_fixed" type="fixed">
+    <parent link="l6" />
+    <child link="j6_passive_idler" />
+    <origin xyz="-0.013 0.0736 0" rpy="0 1.5707963267948966 0" />
+  </joint>
+  <link name="joycon">
+    <visual name="joycon_shell">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="support/joycon_shell.obj" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="joycon_left_1">
+        <color rgba="0.03 0.68 0.87 1" />
+      </material>
+    </visual>
+    <visual name="joycon_rail">
+      <origin xyz="-0.00125 -0.007 0.051" rpy="0 0 0" />
+      <geometry>
+        <box size="0.0025 0.003 0.092" />
+      </geometry>
+      <material name="joycon_left_2">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_trigger">
+      <origin xyz="-0.024 0.0025 0.096" rpy="0 0 0" />
+      <geometry>
+        <box size="0.019 0.005 0.012" />
+      </geometry>
+      <material name="joycon_left_3">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_shoulder">
+      <origin xyz="-0.019 -0.0105 0.099" rpy="0 0 0" />
+      <geometry>
+        <box size="0.025 0.003 0.003" />
+      </geometry>
+      <material name="joycon_left_4">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_stick_stem">
+      <origin xyz="-0.02 -0.0168 0.077" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.004200000000000001" length="0.0058" />
+      </geometry>
+      <material name="joycon_left_5">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_stick_cap">
+      <origin xyz="-0.02 -0.02155 0.077" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0075" length="0.0037" />
+      </geometry>
+      <material name="joycon_left_6">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_stick_center">
+      <origin xyz="-0.02 -0.02335 0.077" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0056" length="0.0001" />
+      </geometry>
+      <material name="joycon_left_7">
+        <color rgba="0.10 0.11 0.12 1" />
+      </material>
+    </visual>
+    <visual name="joycon_button_up">
+      <origin xyz="-0.02 -0.015 0.0545" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0024" length="0.0022" />
+      </geometry>
+      <material name="joycon_left_8">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_button_right">
+      <origin xyz="-0.0135 -0.015 0.048" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0024" length="0.0022" />
+      </geometry>
+      <material name="joycon_left_9">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_button_down">
+      <origin xyz="-0.02 -0.015 0.0415" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0024" length="0.0022" />
+      </geometry>
+      <material name="joycon_left_10">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_button_left">
+      <origin xyz="-0.0265 -0.015 0.048" rpy="1.5707963267948966 0.0 -0.0" />
+      <geometry>
+        <cylinder radius="0.0024" length="0.0022" />
+      </geometry>
+      <material name="joycon_left_11">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_minus">
+      <origin xyz="-0.0065 -0.0151 0.094" rpy="0 0 0" />
+      <geometry>
+        <box size="0.0045 0.0024 0.0012" />
+      </geometry>
+      <material name="joycon_left_12">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+    <visual name="joycon_capture">
+      <origin xyz="-0.007 -0.015 0.02" rpy="0 0 0" />
+      <geometry>
+        <box size="0.005 0.0022 0.005" />
+      </geometry>
+      <material name="joycon_left_13">
+        <color rgba="0.055 0.065 0.075 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="joycon_mount" type="fixed">
+    <parent link="ljc" />
+    <child link="joycon" />
+    <origin xyz="0.06228 -0.0201 -0.123307" rpy="0 0 -1.5707963267948966" />
+  </joint>
+</robot>

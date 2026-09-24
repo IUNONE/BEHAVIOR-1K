@@ -1,0 +1,237 @@
+{
+  "source": "https://github.com/userguide-galaxea/URDF",
+  "commit": "343902060f14622b6048d63b698423443eb4c26d",
+  "original_arm": "left (user identified)",
+  "right_arm": "XZ geometric reflection, axial vectors transformed as -S axis",
+  "profile_mm": [
+    25,
+    50,
+    200
+  ],
+  "profile_status": "schematic cross section; not manufacturer CAD",
+  "base_separation_mm": 210,
+  "offset_deg": [
+    0.0,
+    0.0,
+    0,
+    0.0,
+    0.0,
+    90.0,
+    0.0
+  ],
+  "status": "Preview inference, not encoder calibration or collision-free limits",
+  "arms": {
+    "left": {
+      "signs": [
+        1.0,
+        1.0,
+        -1.0,
+        1.0,
+        -1.0,
+        1.0,
+        1.0
+      ],
+      "shared_limits_deg": [
+        [
+          -253.0005963032095,
+          73.0001753849101
+        ],
+        [
+          -7.998113527318199,
+          178.00042092058476
+        ],
+        [
+          -133.0000865076113,
+          133.00008650788592
+        ],
+        [
+          -118.00028061448495,
+          18.00195663030237
+        ],
+        [
+          -133.00008650789184,
+          133.00008650789184
+        ],
+        [
+          -58.00002571682019,
+          58.000025716545565
+        ],
+        [
+          -75.00000000024367,
+          75.00000000024367
+        ]
+      ],
+      "r1_joints": [
+        "left_arm_joint1",
+        "left_arm_joint2",
+        "left_arm_joint3",
+        "left_arm_joint4",
+        "left_arm_joint5",
+        "left_arm_joint6",
+        "left_arm_joint7"
+      ],
+      "joylo_joints": [
+        "left_joint_1",
+        "left_joint_2",
+        "left_joint_3",
+        "left_joint_4",
+        "left_joint_5",
+        "left_joint_6",
+        "left_joint_7"
+      ]
+    },
+    "right": {
+      "signs": [
+        1.0,
+        -1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        -1.0
+      ],
+      "shared_limits_deg": [
+        [
+          -253.0005963032095,
+          73.0001753849101
+        ],
+        [
+          -178.00042092058476,
+          7.998113527318199
+        ],
+        [
+          -133.00008650788592,
+          133.0000865076113
+        ],
+        [
+          -118.00028061448495,
+          18.00195663030237
+        ],
+        [
+          -133.00008650789184,
+          133.00008650789184
+        ],
+        [
+          -58.00002571682019,
+          58.000025716545565
+        ],
+        [
+          -75.00000000024367,
+          75.00000000024367
+        ]
+      ],
+      "r1_joints": [
+        "right_arm_joint1",
+        "right_arm_joint2",
+        "right_arm_joint3",
+        "right_arm_joint4",
+        "right_arm_joint5",
+        "right_arm_joint6",
+        "right_arm_joint7"
+      ],
+      "joylo_joints": [
+        "right_joint_1",
+        "right_joint_2",
+        "right_joint_3",
+        "right_joint_4",
+        "right_joint_5",
+        "right_joint_6",
+        "right_joint_7"
+      ]
+    }
+  },
+  "assembly_reference_native_deg": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      90.0,
+      0.0
+    ]
+  ],
+  "assembly_reference_shared_deg": [
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "pose_basis": "User screenshot of official 7-DoF assembly video; approximate single-view fit, not encoder calibration.",
+  "wrist_axis_y_in_l7_mm": 12.5,
+  "j7_carrier_mount_phase_deg": -90,
+  "joycon_envelope_mm": {
+    "height": 102,
+    "width": 35.9,
+    "max_depth": 28.4
+  },
+  "joycon_model": "Independent left/right lightweight approximations; fixed to LJC.",
+  "j3_reference_basis": "User-selected previous viewer J3=0 pose is now native zero and startup pose on both arms. Previous 90-degree offset absorbed into joint origin.",
+  "calibration_shared_deg": [
+    [
+      -90.0,
+      90.0,
+      -90.0,
+      -90.0,
+      90.0,
+      60.0,
+      90.0
+    ],
+    [
+      -90.0,
+      -90.0,
+      90.0,
+      -90.0,
+      -90.0,
+      60.0,
+      -90.0
+    ]
+  ],
+  "user_range_overrides_deg": {
+    "left": {
+      "J2_lower": -90,
+      "J6": [
+        -90,
+        90
+      ],
+      "J7": [
+        -90,
+        90
+      ]
+    },
+    "right": {
+      "J2_upper": 90,
+      "J6": [
+        -90,
+        90
+      ],
+      "J7": [
+        -90,
+        90
+      ]
+    }
+  }
+}

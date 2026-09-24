@@ -2,3 +2,7 @@ __pycache__/
 *.egg-info/
 
 configs/
+
+# Local assembly viewer artifacts
+.DS_Store
+.pytest_cache/
