@@ -9,7 +9,7 @@ conda activate joylo-minimal
 python -B scripts/joylo/view_joylo_urdf.py
 
 python -B scripts/joylo/view_joylo_urdf.py \
-  --robot mobile_nero 
+  --robot mobile_nero \
   --without_joylo
 ```
 
