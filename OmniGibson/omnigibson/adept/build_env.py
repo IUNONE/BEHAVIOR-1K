@@ -219,6 +219,26 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
                     place_object(env, name, placement)
                 error = validate_candidate(env, objects, table, config, compiled, predicate, robot_pose, robot_joints, hold, obstacles)
                 if error:
+                    if error == "robot joint drift" and failures[error] == 0:
+                        current = robot.get_joint_positions()
+                        for name, joint in robot.joints.items():
+                            if not joint.articulated:
+                                continue
+                            indices = joint.dof_indices
+                            difference = (current[indices] - robot_joints[indices]).abs()
+                            if float(difference.max()) > 0.03:
+                                print(
+                                    f"Joint drift: {name}, type={joint.joint_type}, "
+                                    f"initial={robot_joints[indices].tolist()}, actual={current[indices].tolist()}, "
+                                    f"delta={difference.tolist()}, limits=({joint.lower_limit}, {joint.upper_limit})",
+                                    flush=True,
+                                )
+                        contacts = RigidContactAPI.get_contact_pairs(
+                            scene_idx=env.scene.idx,
+                            query_set=[link.prim_path for link in robot.links.values()],
+                            with_set=None, current_only=False,
+                        )
+                        print(f"Robot contacts: {sorted(contacts)}", flush=True)
                     failures[error] += 1
                     continue
                 parameters = resolve_parameters(config, initial)

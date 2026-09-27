@@ -139,13 +139,20 @@ def configure_robot_physics(env):
     og.sim.update_handles()
     robot = env.robots[0]
     reset_positions = robot.reset_joint_pos.clone()
-    for name in ("left_arm_joint4", "right_arm_joint4"):
-        reset_positions[robot.joints[name].dof_indices] = -th.pi / 2
+    arm_angles = {
+        "left": [0.0, 60.0, 0.0, -90.0, 60.0, 45.0, 0.0],
+        "right": [0.0, -60.0, 0.0, -90.0, 60.0, 45.0, 0.0],
+    }
+    for arm, angles in arm_angles.items():
+        for number, angle in enumerate(angles, start=1):
+            name = f"{arm}_arm_joint{number}"
+            reset_positions[robot.joints[name].dof_indices] = angle * th.pi / 180.0
     robot.reset_joint_pos = reset_positions
     robot.reset()
-    for name in ("left_arm_joint4", "right_arm_joint4"):
-        angle = robot.get_joint_positions()[robot.joints[name].dof_indices]
-        print(f"ADEPT initial {name}: {th.rad2deg(angle).tolist()} degrees", flush=True)
+    for arm in arm_angles:
+        indices = [robot.joints[f"{arm}_arm_joint{number}"].dof_indices[0] for number in range(1, 8)]
+        angles = th.rad2deg(robot.get_joint_positions()[indices]).tolist()
+        print(f"ADEPT initial {arm} arm j1-j7: {angles} degrees", flush=True)
     head = robot.sensors[f"{robot.name}:zed_link:Camera:0"]
     head.set_position_orientation(th.tensor([0.06, 0.0, 0.01]), th.tensor([-1., 0., 0., 0.]), frame="parent")
 
