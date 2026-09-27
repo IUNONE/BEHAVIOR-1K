@@ -140,8 +140,8 @@ def configure_robot_physics(env):
     robot = env.robots[0]
     reset_positions = robot.reset_joint_pos.clone()
     arm_angles = {
-        "left": [0.0, 60.0, 0.0, -90.0, 60.0, 45.0, 0.0],
-        "right": [0.0, -60.0, 0.0, -90.0, 60.0, 45.0, 0.0],
+        "left": [0.0, 60.0, 0.0, -90.0, 60.0, 45.0, -45.0],
+        "right": [0.0, -60.0, 0.0, -90.0, -60.0, 45.0, 45.0],
     }
     for arm, angles in arm_angles.items():
         for number, angle in enumerate(angles, start=1):
