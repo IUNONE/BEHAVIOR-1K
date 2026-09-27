@@ -1,3 +1,4 @@
+from omnigibson.adept.wooden_table import ADEPTWoodenTable  # noqa: F401
 from omnigibson.adept.custom_asset import ADEPTAssetObject  # noqa: F401
 from omnigibson.scenes.scene_base import Scene
 from omnigibson.utils.asset_utils import get_bddl_version, get_omnigibson_version

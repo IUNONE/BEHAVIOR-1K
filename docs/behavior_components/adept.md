@@ -109,7 +109,7 @@ python -B -m omnigibson.eval.eval \
   --output-dir outputs/adept
 ```
 
-每个实例只保存 outputs/adept/check_env/TASK_NAME/{instance_ID}_preview.mp4. 视频包含四路拼接画面, 默认 60 步, 30 FPS, 约 2 秒. 初始关系和稳定性检查结果在终端显示.
+每个实例保存 outputs/adept/check_env/TASK_NAME/{instance_ID}_preview.mp4, 本次全部预览另合成为同目录的 all_instances_preview.mp4. 视频包含四路拼接画面, 默认 60 步, 30 FPS, 约 2 秒. 初始关系和稳定性检查结果在终端显示.
 
 check_env 添加 --camera_resolution 1280 可临时将头部, 双腕和第三视角相机均设为 1280×1280, 四路按原分辨率拼接为 2560×2560 视频. 参数仅覆盖本次运行的内存配置, 无需重新 build_env, 不写入 YAML 或实例文件. 省略参数时沿用默认相机分辨率与预览尺寸. 该参数也支持 --camera-resolution 拼写.
 
@@ -168,3 +168,5 @@ ADEPT 的 train 与 check_env 均使用直接实例 ID. public_test/hidden_test 
 资产位于 OmniGibson/omnigibson/adept/custom_assets/cube_bookcase/, 包含 bookcase.usda, visual.usda, materials.usda 和 textures/ 下两张贴图. 原始来源为 Movian 1 locker MDF wood Shelf, Cube Bookcase, Beige, 41.5 x 29 x 30, 保留原始版权元数据. visual.usda 保留原网格和 UV, 烘焙原变换并将开口朝向世界 -X. 五块柜板采用独立盒形碰撞体, 内部 fillable 元链接提供原生 inside 判定体积. 内腔体积为保守近似, 实际碰撞与放书成功判定待服务器验证.
 
 YAML 使用 ADEPTAssetObject 和 asset_path: custom_assets/cube_bookcase/bookcase.usda. 路径以 adept 代码目录为基准, 与命令运行目录无关. 原生场景及 HDF5 的对象创建参数保存相对 asset_path, 重新加载时在目标机器解析. USD 内部材质与贴图也使用相对引用. 更换资产后需要 build_env --overwrite 重建.
+
+check_env 可使用 --all-instances 替代 --instance-indices, 自动读取任务 instances 目录中的全部数字编号并排序. --layout 3x4 表示 3 行 4 列, 每 12 个实例从左到右, 从上到下组成一页, 各页按顺序串接. 默认布局为 1x1. 每格顶部显示 instance_id: 001 格式的浅金色标签与深色标题栏; 末页空位为深色背景. 多格布局单格宽度最多 640 像素并保持画面比例, 单格布局保留原分辨率, 独立视频分辨率不受影响. 汇总只使用本次生成的视频.

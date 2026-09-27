@@ -37,8 +37,23 @@ def parse_args() -> argparse.Namespace:
     """解析官方评估和 ADEPT 环境检查参数."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task-name", required=True, help="BEHAVIOR task name, e.g. turning_on_radio.")
-    parser.add_argument("--host", default="127.0.0.1", help="Policy websocket server host.")
-    parser.add_argument("--port", type=int, default=8000, help="Policy websocket server port.")
+    parser.add_argument(
+        "--host",
+        default=None,
+        help=(
+            "Policy server host. The built-in websocket policy uses 127.0.0.1 when omitted. "
+            "The OpenWAM adapter uses policy_config.yml when omitted."
+        ),
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help=(
+            "Policy server port. The built-in websocket policy uses 8000 when omitted. "
+            "The OpenWAM adapter uses policy_config.yml when omitted."
+        ),
+    )
     parser.add_argument(
         "--robot-config",
         type=str,
@@ -64,6 +79,8 @@ def parse_args() -> argparse.Namespace:
         default="public_test",
         help="Instance split to evaluate. Default: public_test.",
     )
+    parser.add_argument("--all-instances", action="store_true", help="Check all saved ADEPT instances in numeric order.")
+    parser.add_argument("--layout", default=None, help="Summary preview ROWSxCOLS layout, e.g. 3x4; default 1x1.")
     parser.add_argument("--num-rollouts", type=int, default=1, help="Rollouts per instance.")
     parser.add_argument(
         "--max-steps",
@@ -81,6 +98,20 @@ def parse_args() -> argparse.Namespace:
         choices=("websocket", "local"),
         default="websocket",
         help="Policy backend to use. local emits zero actions and is intended for eval smoke tests.",
+    )
+    parser.add_argument(
+        "--policy-adapter",
+        default=None,
+        help=(
+            "In-process policy as module:Class for ADEPT --mode train. "
+            "OpenWAM uses benchmarks.behavior.openwam2behavior_interface:OpenWAMBehaviorPolicy "
+            "and --port 8848."
+        ),
+    )
+    parser.add_argument(
+        "--policy-config",
+        default=None,
+        help="YAML contract for --policy-adapter. The OpenWAM adapter has a default policy_config.yml.",
     )
     parser.add_argument("--output-dir", default="/tmp/b1k_eval", help="Where to write result JSONs.")
     parser.add_argument(
@@ -101,6 +132,18 @@ def parse_args() -> argparse.Namespace:
         help="Run OmniGibson headless (default: True).",
     )
     args = parser.parse_args()
+    if args.all_instances and args.instance_indices is not None:
+        parser.error("--all-instances and --instance-indices are mutually exclusive.")
+    if args.all_instances or args.layout is not None:
+        if args.mode != "check_env" or args.task_name not in ADEPT_TASK_NAMES:
+            parser.error("--all-instances and --layout require ADEPT --mode check_env.")
+    if args.layout is not None:
+        from omnigibson.adept.preview_video_utils import parse_layout
+        try:
+            parse_layout(args.layout)
+        except ValueError as error:
+            parser.error(str(error))
+
     if args.camera_resolution is not None:
         if args.camera_resolution < 1:
             parser.error("--camera_resolution must be positive.")
@@ -112,10 +155,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """根据任务类型启动环境检查或策略评估."""
     args = parse_args()
-    if args.instance_indices is None:
+    if args.instance_indices is None and not args.all_instances:
         args.instance_indices = [1] if args.task_name in ADEPT_TASK_NAMES else [0]
 
     gm.HEADLESS = args.headless
+
+    if args.policy_adapter and (args.task_name not in ADEPT_TASK_NAMES or args.mode != "train"):
+        raise ValueError("--policy-adapter requires an ADEPT task and --mode train.")
 
     if args.task_name in ADEPT_TASK_NAMES:
         if args.env_wrapper != "omnigibson.eval.wrappers.DefaultWrapper":
@@ -151,8 +197,8 @@ def main() -> None:
     if args.policy == "websocket":
         model_cfg = {
             "_target_": "omnigibson.eval.policies.WebsocketPolicy",
-            "host": args.host,
-            "port": args.port,
+            "host": "127.0.0.1" if args.host is None else args.host,
+            "port": 8000 if args.port is None else args.port,
         }
     else:
         model_cfg = {"_target_": "omnigibson.eval.policies.LocalPolicy", "action_dim": None}

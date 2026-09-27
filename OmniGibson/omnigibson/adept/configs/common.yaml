@@ -9,6 +9,7 @@ check_steps: 60
 robot:
   position: [0.0, 0.0, 0.0]
   orientation: [0.0, 0.0, 0.0, 1.0]
+  reset_joint_pos: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.025, -1.45, -0.47, 0.0, 0.0, 0.0, 0.0, -1.5707963267948966, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.5707963267948966, 0.0, 0.0, 0.0, 0.05, 0.05, 0.05, 0.05]
 camera:
   position: [1.45, 0.05, 1.75]
   target: [0.45, 0.0, 0.85]
@@ -22,7 +23,7 @@ room_objects:
   - {type: PrimitiveObject, name: left_wall, primitive_type: Cube, scale: [4.0, 0.1, 2.5], position: [0.5, 2.0, 1.25], fixed_base: true}
   - {type: PrimitiveObject, name: right_wall, primitive_type: Cube, scale: [4.0, 0.1, 2.5], position: [0.5, -2.0, 1.25], fixed_base: true}
 table:
-  type: DatasetObject
+  type: ADEPTWoodenTable
   name: work_table
   category: desk
   model: tmluxa

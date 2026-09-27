@@ -7,8 +7,9 @@ import torch as th
 import omnigibson as og
 from omnigibson.adept.environment import (
     build_environment_config, configure_robot_physics, initial_report, load_instance,
-    load_task_config, make_hold_action,
+    load_task_config, make_hold_action, task_directory,
 )
+from omnigibson.adept.preview_video_utils import compose_instance_previews, list_instance_ids
 from omnigibson.adept.visuals import VideoWriter, frames, mosaic
 from omnigibson.macros import gm
 
@@ -18,7 +19,13 @@ def run(args):
     gm.HEADLESS = args.headless
     gm.ENABLE_TRANSITION_RULES = False
     gm.USE_GPU_DYNAMICS = False
+    if args.all_instances:
+        args.instance_indices = list_instance_ids(task_directory(args.task_name))
+    else:
+        args.instance_indices = sorted(set(args.instance_indices))
+    videos = {}
     config = load_task_config(args.task_name)
+
     check_steps = config["check_steps"] if args.max_steps is None else args.max_steps
     if check_steps < 1:
         raise ValueError("check_env steps must be positive.")
@@ -65,6 +72,7 @@ def run(args):
                         max_drift[name] = max(max_drift[name], float(th.linalg.vector_norm(current - position)))
             finally:
                 writer.close()
+            videos[instance_id] = video_path
             final = initial_report(env)
             report["passed"] = (report["initial_conditions_valid"] and final["initial_conditions_valid"]
                                 and not report["initial_goal_satisfied"] and not final["initial_goal_satisfied"]
@@ -72,6 +80,10 @@ def run(args):
                                 and all(value <= config["thresholds"]["initial_object_drift"] for value in max_drift.values()))
             print(f"{args.task_name} instance {instance_id}: passed={report['passed']}, video={video_path}")
             failed |= not report["passed"]
+        stage = "composing all instance previews"
+        output = Path(args.output_dir).expanduser() / "check_env" / args.task_name / "all_instances_preview.mp4"
+        compose_instance_previews(videos, output, layout=args.layout or "1x1")
+        print(f"Summary preview: {output}", flush=True)
     except Exception:
         print(f"check_env failed while {stage}:", file=sys.stderr, flush=True)
         traceback.print_exc()
