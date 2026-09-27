@@ -23,7 +23,7 @@ room_objects:
   - {type: PrimitiveObject, name: left_wall, primitive_type: Cube, scale: [4.0, 0.1, 2.5], position: [0.5, 2.0, 1.25], fixed_base: true}
   - {type: PrimitiveObject, name: right_wall, primitive_type: Cube, scale: [4.0, 0.1, 2.5], position: [0.5, -2.0, 1.25], fixed_base: true}
 table:
-  type: ADEPTWoodenTable
+  type: DatasetObject
   name: work_table
   category: desk
   model: tmluxa

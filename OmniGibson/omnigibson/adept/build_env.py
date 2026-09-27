@@ -1,4 +1,6 @@
 import argparse
+import sys
+import traceback
 import math
 import random
 import shutil
@@ -169,6 +171,7 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
         "objects": deepcopy(config["room_objects"] + [config["table"]] + config["objects"]),
         "task": {"type": "DummyTask", "include_obs": False},
     }
+    print("build_env: creating scene", flush=True)
     env = og.Environment(configs=cfg)
     configure_robot_physics(env)
     place_object(env, "work_table", {"xy": config["table"]["position"][:2], "bottom_z": 0.,
@@ -239,16 +242,18 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
                 break
             else:
                 raise RuntimeError(f"Instance {instance_id} failed after {max_attempts} attempts: {dict(failures)}")
+        print("build_env: reloading saved scene for validation", flush=True)
         og.clear()
         env = og.Environment(configs=build_environment_config(task_name, "collection", instance_ids[0], task_dir=staging))
         configure_robot_physics(env)
         for instance_id in instance_ids:
+            print(f"build_env: validating saved instance {instance_id}", flush=True)
             load_instance(env, task_name, instance_id, task_dir=staging)
             report = initial_report(env)
             if not report["initial_conditions_valid"] or report["initial_goal_satisfied"]:
                 raise RuntimeError(f"Instance {instance_id} failed saved-state validation: {report}")
         shutil.copytree(staging, directory, dirs_exist_ok=True)
-    print(f"Built {task_name}: {len(instance_ids)} instances in {directory}")
+    print(f"Built {task_name}: {len(instance_ids)} instances in {directory}", flush=True)
 
 
 def main():
@@ -271,6 +276,11 @@ def main():
     gm.USE_GPU_DYNAMICS = False
     try:
         build(args.task_name, instance_ids, args.overwrite, args.seed, args.max_attempts)
+    except Exception:
+        print("build_env failed before completion:", file=sys.stderr, flush=True)
+        traceback.print_exc()
+        sys.stderr.flush()
+        raise
     finally:
         if og.app is not None:
             og.shutdown()

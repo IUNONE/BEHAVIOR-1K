@@ -138,6 +138,14 @@ def configure_robot_physics(env):
     og.sim.play()
     og.sim.update_handles()
     robot = env.robots[0]
+    reset_positions = robot.reset_joint_pos.clone()
+    for name in ("left_arm_joint4", "right_arm_joint4"):
+        reset_positions[robot.joints[name].dof_indices] = -th.pi / 2
+    robot.reset_joint_pos = reset_positions
+    robot.reset()
+    for name in ("left_arm_joint4", "right_arm_joint4"):
+        angle = robot.get_joint_positions()[robot.joints[name].dof_indices]
+        print(f"ADEPT initial {name}: {th.rad2deg(angle).tolist()} degrees", flush=True)
     head = robot.sensors[f"{robot.name}:zed_link:Camera:0"]
     head.set_position_orientation(th.tensor([0.06, 0.0, 0.01]), th.tensor([-1., 0., 0., 0.]), frame="parent")
 
