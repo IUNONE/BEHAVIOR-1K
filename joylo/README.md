@@ -1,18 +1,31 @@
 # Data Collection with JoyLo for OmniGibson
 
-## Hardware Setup
+## 1. JoyLo Assembly
 
-### 1. JoyLo Assembly
+```
+conda create -f joylo_minimal_env.yaml
+conda activate joylo-minimal
 
-- **7 DoF R1-Pro**: [Assembly Guide](ASSEMBLY.md)
+python -B scripts/joylo/view_joylo_urdf.py
 
-[Assembly Video](https://github.com/user-attachments/assets/d6d3ee59-dfac-4ece-92f4-ea44619a2d05)
+python -B scripts/joylo/view_joylo_urdf.py \
+  --robot mobile_nero 
+  --without_joylo
+```
 
-> **[Deprecated]** For the 6-DoF R1 version, please reference this [guide](https://behavior-robot-suite.github.io/docs/sections/joylo/overview.html) from the [BEHAVIOR Robot Suite](https://behavior-robot-suite.github.io/).
+打开终端输出的网址，默认 `http://127.0.0.1:8080`。 查看器支持双臂 JoyLo / R1 Pro、各关节滑块、电机 ID、恢复零位和恢复标定位。 
+
+```
+python -B scripts/joylo/view_joylo_urdf.py \
+  --live-arm right \
+  --port /dev/cu.usbserial-FTBIHTHX \
+  --baudrate 2000000 \
+  --joint-config configs/joint_config_right_arm.yaml
+```
 
 ---
 
-### 2. Nintendo JoyCon Configuration
+## 2. Nintendo JoyCon Configuration
 
 #### Step 1: Configure udev rules
 
@@ -52,17 +65,16 @@ sudo add-apt-repository universe
 sudo apt-get install blueman
 ```
 
----
 
-### 3. Connecting JoyCons
+#### Step 5: Connecting JoyCons
 
-#### Method 1: Using System Settings or Bluetooth Manager (Recommended)
+- Method 1: Using System Settings or Bluetooth Manager (Recommended)
 
 1. Ensure your external Bluetooth dongle is connected
 2. Open system Bluetooth settings or Bluetooth Manager
 3. Search for JoyCon devices and connect when they appear
 
-#### Method 2: Using Command Line (If Method 1 fails)
+- Method 2: Using Command Line (If Method 1 fails)
 
 ```bash
 bluetoothctl
@@ -78,9 +90,7 @@ connect <MAC_ADDRESS>
 
 ---
 
-### 4. JoyLo Calibration
-
-> **Important:** Install BEHAVIOR-1K (see [Software Setup](#software-setup)) before running calibration scripts.
+## 3. JoyLo Calibration
 
 JoyLo sets can be assembled in slightly different ways, resulting in different orientations of the motors and offsets between the physical motor positions and the joint positions in simulation.
 
@@ -95,15 +105,15 @@ You need to run both scripts once before the first time you perform any data col
 
 #### Running the calibrations
 
+1. Calibrate JoyCons
 ```bash
-# Calibrate JoyCons
 python joylo/scripts/calibrate_joycons.py
 ```
 
 This will create two `joycon_calibration_xxx.yaml` files under `joylo/configs`.
 
+2. Calibrate joints
 ```bash
-# Calibrate joints
 python joylo/scripts/calibrate_joints.py
 ```
 
@@ -111,48 +121,15 @@ This will create a `joint_config_default.yaml` under `joylo/configs`.
 
 #### Reference Positions
 
-The calibration script requires each arm to be placed in two fixed reference positions, called the **"zero"** and **"calibration"** positions. These are provided below for both the R1 (6-DoF) and R1-Pro (7-DoF) JoyLo variants.
+The calibration script requires each arm to be placed in two fixed reference positions, called the **"zero"** and **"calibration"** positions. 
 
-|                    | R1 (6-DoF)                                                                      | R1-Pro (7-DoF)                                                                       |
-|--------------------|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| **Zero Position**  | ![](imgs/R1_zero_L.jpg) ![](imgs/R1_zero_R.jpg)                                | ![](imgs/R1pro_zero_L.jpg) ![](imgs/R1pro_zero_R.jpg)                              |
-| **Calibration**   | ![](imgs/R1_calibration_L.jpg) ![](imgs/R1_calibration_R.jpg)                | ![](imgs/R1pro_calibration_L.jpg) ![](imgs/R1pro_calibration_R.jpg)                |
-| **Note**          | Take from the front - note the forwards orientation of the wrist joint notch |                                                                                      |
+| Zero Position                                  | Calibration                                                  |
+|------------------------------------------------|--------------------------------------------------------------|
+| ![](imgs/R1pro_zero_L.jpg) ![](imgs/R1pro_zero_R.jpg) | ![](imgs/R1pro_calibration_L.jpg) ![](imgs/R1pro_calibration_R.jpg) |
 
 ---
 
-## Software Setup
-
-### 0. Prerequisites
-
-- Ubuntu 22.04+
-- NVIDIA RTX-enabled GPU
-- External Bluetooth dongle (recommended: [Amazon Link](https://www.amazon.com/dp/B08DFBNG7F/ref=pe_386300_442618370_TE_dp_i1?th=1))
-
-### 1. BEHAVIOR-1K Installation
-
-All software dependencies (OmniGibson, BDDL, JoyLo, datasets) are installed via the `setup.sh` script in the BEHAVIOR-1K repository root.
-
-```bash
-cd /path/to/BEHAVIOR-1K
-./setup.sh --new-env --omnigibson --bddl --joylo --dataset --eval
-```
-
-This will create a new conda environment `behavior`.
-
-Then, run datasets setup again to make sure everything is up-to-date:
-
-```bash
-conda activate behavior
-./setup.sh --dataset
-```
-
----
-
-### 2. Running the System
-
-> **Important:** Make sure you have run calibration scripts (see [Hardware Setup section 4](#4-joylo-calibration)) before running the following scripts.
-
+## 4. Collection
 The system runs two scripts in separate terminals. The scripts are located under `joylo/scripts`:
 
 | Script | Purpose | Key Args |
@@ -167,7 +144,9 @@ The system runs two scripts in separate terminals. The scripts are located under
 3. In one terminal, start the recording environment with a specified task:
 
 ```bash
-python joylo/scripts/launch_og.py --task_name turning_on_radio --recording_path /path/to/recording_file_name.hdf5
+python joylo/scripts/launch_og.py \
+  --task_name turning_on_radio \
+  --recording_path /path/to/recording_file_name.hdf5
 ```
 
 4. In another terminal, run the JoyLo node:
@@ -226,17 +205,4 @@ sudo apt install libhidapi-hidraw0
 
 ## JoyCon Button Mapping
 
-![Joycon instruction](https://github.com/user-attachments/assets/2e7d57d7-66be-490b-aa76-4d6f9b2ede52)
-
-## Custom assembly viewers (adept-sim)
-
-The JoyLo / R1 Pro and Mobile Nero viewers, CAD sources, models, and supporting
-scripts migrated from `brs-ctrl` are documented in [VIEWER.md](VIEWER.md).
-Run the viewer commands from this `joylo/` directory. These viewers do not connect
-to motors and their displayed zero positions are not encoder calibration.
-
-### Single-arm joint calibration (adept-sim)
-
-`calibrate_joints.py --arm right` reads only right-arm motor IDs (9–17 for R1Pro).
-See [右臂标定步骤与配置格式](RIGHT_ARM_CALIBRATION.md). The original teleoperation
-client still requires both arms; single-arm calibration is a separate first step.
+![Joycon instruction](imgs/joycon_button_mapping.png)
