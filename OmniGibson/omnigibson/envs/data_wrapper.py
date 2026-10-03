@@ -622,20 +622,22 @@ class DataPlaybackWrapper(DataWrapper):
         record_data: bool = True,
         video_keys: dict = None,
         post_state_update_callback: Callable[[], None] | None = None,
+        state_observation_callback: Callable[[int], None] | None = None,
     ) -> None:
-        """
-        Playback episode @episode_id, and optionally record observation data if @record is True
+        """恢复原生轨迹并按需记录观测或视频.
 
-        Args:
-            episode_id (int): Episode to playback. This should be a valid demo ID number from the inputted collected
-                data hdf5 file
-            record_data (bool): Whether to record data during playback or not
-            video_keys (dict): Optional dictionary of video keys to record during playback. If provided, will recreate
-                video writers at the start of playback (useful if they were flushed after a previous episode)
-                It should be a dict mapping from obs keys to the desired output video file name.
-            post_state_update_callback (None or Callable): Optional callback called after playback restores recorded
-                state, and after each playback step updates simulator state. This can be used to resync visual state
-                that is derived from recorded object state but is not directly serialized.
+        参数
+        ----
+        episode_id : int
+            原始回合编号.
+        record_data : bool
+            是否保存回放观测.
+        video_keys : dict or None
+            需要导出的视频键.
+        post_state_update_callback : callable or None
+            状态恢复及物理传播后同步派生视觉状态.
+        state_observation_callback : callable or None
+            每个源状态恢复后, 物理传播前调用, 参数为源状态下标.
         """
 
         # Recreate video writers if video_keys are provided
@@ -729,6 +731,8 @@ class DataPlaybackWrapper(DataWrapper):
             og.sim.load_state(s[: int(ss)], serialized=True)
             if post_state_update_callback is not None:
                 post_state_update_callback()
+            if state_observation_callback is not None:
+                state_observation_callback(i)
             if not self.include_contacts:
                 # When all objects/systems are visual-only, keep them still on every step
                 for obj in self.scene.objects:

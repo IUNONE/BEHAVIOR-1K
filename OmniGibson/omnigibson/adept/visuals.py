@@ -29,6 +29,22 @@ def mosaic(images, tile_size=(640, 480)):
                            np.concatenate([images["left_wrist"], images["right_wrist"]], axis=1)], axis=0)
 
 
+def robot_camera_row(images):
+    """保持原始纵横比, 将头部与双腕画面拼为一行三列."""
+    height, width = images["head"].shape[:2]
+    height += height % 2
+    width += width % 2
+    canvas = np.zeros((height, width * 3, 3), dtype=np.uint8)
+    for index, role in enumerate(("head", "left_wrist", "right_wrist")):
+        rgb = images[role]
+        scale = min(width / rgb.shape[1], height / rgb.shape[0])
+        resized_width, resized_height = round(rgb.shape[1] * scale), round(rgb.shape[0] * scale)
+        rgb = cv2.resize(rgb, (resized_width, resized_height), interpolation=cv2.INTER_AREA)
+        top, left = (height - resized_height) // 2, index * width + (width - resized_width) // 2
+        canvas[top:top + resized_height, left:left + resized_width] = rgb
+    return canvas
+
+
 class VideoWriter:
     """逐帧写入 RGB 视频并完成编码收尾."""
 

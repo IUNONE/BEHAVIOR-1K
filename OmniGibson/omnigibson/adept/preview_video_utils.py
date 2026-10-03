@@ -31,7 +31,7 @@ def list_instance_ids(task_dir):
     return ids
 
 
-def _draw_cell(canvas, rgb, row, column, width, height, header, instance_id):
+def _draw_cell(canvas, rgb, row, column, width, height, header, instance_id, success=False):
     """按原始纵横比放置画面并在顶部居中绘制实例标签."""
     top, left = row * (height + header), column * width
     scale = min(width / rgb.shape[1], height / rgb.shape[0])
@@ -42,20 +42,34 @@ def _draw_cell(canvas, rgb, row, column, width, height, header, instance_id):
     x = left + (width - image_width) // 2
     canvas[y:y + image_height, x:x + image_width] = resized
     canvas[top:top + header, left:left + width] = (24, 31, 44)
-    label = f"instance_id: {instance_id:03d}"
+    if isinstance(instance_id, tuple):
+        label = f"instance_id: {instance_id[0]:03d}   rollout_id: {instance_id[1]:03d}"
+    else:
+        label = f"instance_id: {instance_id:03d}"
     font = cv2.FONT_HERSHEY_DUPLEX
     font_scale = min(header / 50, width / 420)
+    text_width = cv2.getTextSize(label, font, font_scale, 1)[0][0]
+    font_scale *= min(1.0, (width - 24) / max(1, text_width))
     (text_width, text_height), baseline = cv2.getTextSize(label, font, font_scale, 1)
     origin = (left + (width - text_width) // 2, top + (header + text_height - baseline) // 2)
     cv2.putText(canvas, label, origin, font, font_scale, (239, 204, 132), 1, cv2.LINE_AA)
+    if success:
+        cell = canvas[top + header:top + header + height, left:left + width]
+        cell[:] = np.round(cell.astype(np.float32) * 0.55 + 255 * 0.45).astype(np.uint8)
+        success_scale = min(width / 260, height / 130)
+        thickness = max(2, round(success_scale * 2))
+        (text_width, text_height), _ = cv2.getTextSize("Success", font, success_scale, thickness)
+        origin = ((width - text_width) // 2, (height + text_height) // 2)
+        cv2.putText(cell, "Success", origin, font, success_scale, (22, 145, 71), thickness, cv2.LINE_AA)
 
 
-def compose_instance_previews(videos, output_path, layout="1x1"):
+def compose_instance_previews(videos, output_path, layout="1x1", success_steps=None):
     """将本次实例视频按数字编号分组并逐页串接为汇总视频.
 
     多格布局的单格宽度最多为 640 像素, 高度按原视频比例计算.
     默认单格布局保留原分辨率, 额外添加标题栏.
     每页从各视频首帧同步播放, 较短视频停留在末帧, 末页空位保留背景.
+    success_steps 按视频键指定首次成功帧, 从该帧起持续显示成功标记.
     """
     rows, columns = parse_layout(layout)
     ordered = sorted(videos.items())
@@ -80,15 +94,18 @@ def compose_instance_previews(videos, output_path, layout="1x1"):
                 if any(reader.streams.video[0].average_rate != fps for reader in readers):
                     raise ValueError("Preview videos must have the same frame rate.")
                 last_frames = [None] * len(page)
-                for decoded in zip_longest(*(reader.decode(video=0) for reader in readers)):
+                for frame_index, decoded in enumerate(zip_longest(*(reader.decode(video=0) for reader in readers))):
                     canvas = np.full((rows * (height + header), columns * width, 3), (14, 19, 28), dtype=np.uint8)
                     for index, frame in enumerate(decoded):
                         if frame is not None:
                             last_frames[index] = frame.to_ndarray(format="rgb24")
                         if last_frames[index] is None:
                             raise ValueError(f"Empty preview video: {page[index][1]}")
+                        key = page[index][0]
+                        success_step = -1 if success_steps is None else success_steps[key]
                         _draw_cell(canvas, last_frames[index], index // columns, index % columns,
-                                   width, height, header, page[index][0])
+                                   width, height, header, key,
+                                   success=success_step >= 0 and frame_index >= success_step)
                     writer.write(canvas)
                 if any(frame is None for frame in last_frames):
                     raise ValueError("A preview page contains an empty video.")

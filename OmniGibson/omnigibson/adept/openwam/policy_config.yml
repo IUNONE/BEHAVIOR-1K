@@ -1,0 +1,33 @@
+# ADEPT / R1Pro inference contract for an OpenWAM checkpoint trained as EEF20.
+#
+# The policy server loads the checkpoint, normalizes this raw state, and returns
+# one denormalized EEF20 action per request. This file does not select a
+# different action representation at inference time.
+
+action_source: model          # model: query the server; identity: command the measured EEF
+host: 127.0.0.1
+port: 8848                    # used when eval omits --port; an explicit --port overrides this
+request_timeout: 300
+
+# Byte-for-byte prefix used by the RoboDojo training reader.
+prompt_prefix: "A video recorded from a robot's point of view executing the following instruction: "
+
+# Robot camera links. The server places them in L-shape order: head, left wrist, right wrist.
+cameras:
+  head: zed_link
+  left_wrist: left_realsense_link
+  right_wrist: right_realsense_link
+
+# Checked at startup. Any other value is rejected.
+representation: eef
+eef_frame: robot_base
+pose_type: absolute
+rotation: rot6d
+gripper_model: zero_closed_one_open
+gripper_native: minus_one_closed_plus_one_open
+endpoint: eef_link
+control_hz: 30
+torso_mode: hold_initial
+
+# One J-PARSE step, then each arm joint may move by at most this many radians.
+max_joint_delta_rad: 0.2

@@ -2,13 +2,104 @@ import argparse
 import csv
 import inspect
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Optional
+
+
+def parse_args():
+    """解析互斥的单文件与目录输入及公共回放参数."""
+    parser = argparse.ArgumentParser(
+        description="Replay a single HDF5 or all episodes in a raw HDF5 directory"
+    )
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument("input", nargs="?", help="Path to one raw HDF5 file")
+    inputs.add_argument("--raw-hdf5-dir", help="Replay all nonempty episodes in every .hdf5 file directly under this directory")
+    parser.add_argument(
+        "-t",
+        "--task",
+        type=str,
+        help="Task name; required for one file, inferred from recordings in directory mode",
+    )
+    parser.add_argument(
+        "--flush_every_n_steps", type=int, default=1000, help="Flush data every N steps"
+    )
+    parser.add_argument(
+        "--qa", action="store_true", help="Print recorded outcomes for ADEPT; run QA metrics for other tasks"
+    )
+    parser.add_argument(
+        "--episode_id", "--episode-id",
+        type=int,
+        default=None,
+        help="Episode ID to replay. If omitted with --qa in an interactive shell, asks for a selection.",
+    )
+    parser.add_argument("--output-dir", help="ADEPT episode HDF5 and preview output directory")
+    parser.add_argument("--overwrite", action="store_true", help="replace an existing ADEPT export")
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=None)
+
+    args = parser.parse_args()
+    if args.input is not None and args.task is None:
+        parser.error("single-file replay requires --task")
+    if args.raw_hdf5_dir is not None:
+        if args.episode_id is not None:
+            parser.error("--episode-id selects a single-file episode; directory mode replays every nonempty episode")
+        if args.output_dir is None:
+            parser.error("directory replay requires --output-dir")
+    return args
+
+
+def replay_directory(args):
+    """按文件和回合排序, 在独立子进程中顺序回放目录内全部非空回合."""
+    import h5py
+
+    directory = Path(args.raw_hdf5_dir).expanduser().resolve()
+    files = sorted(path for path in directory.glob("*.hdf5") if path.is_file())
+    if not files:
+        raise FileNotFoundError(f"No .hdf5 files directly under {directory}")
+    jobs = []
+    for path in files:
+        with h5py.File(path, "r") as source:
+            data = source["data"]
+            task = json.loads(data.attrs["config"])["task"]["activity_name"]
+            if args.task is not None and args.task != task:
+                raise ValueError(f"{path}: recorded task {task!r} differs from --task {args.task!r}")
+            episodes = sorted(int(key[5:]) for key, group in data.items()
+                              if key.startswith("demo_") and int(group.attrs["num_samples"]) > 0)
+        if not episodes:
+            print(f"Skip empty recording: {path.name}", flush=True)
+        jobs.extend((path, task, episode) for episode in episodes)
+    if not jobs:
+        raise ValueError(f"No nonempty episodes under {directory}")
+    print(f"Batch replay: {len(files)} files, {len(jobs)} episodes", flush=True)
+    for index, (path, task, episode) in enumerate(jobs, start=1):
+        print(f"[{index}/{len(jobs)}] {path.name} / demo_{episode}", flush=True)
+        command = [sys.executable, "-B", str(Path(__file__).resolve()), str(path),
+                   "--task", task, "--episode-id", str(episode),
+                   "--output-dir", str(Path(args.output_dir).expanduser().resolve()),
+                   "--flush_every_n_steps", str(args.flush_every_n_steps)]
+        if args.qa:
+            command.append("--qa")
+        if args.overwrite:
+            command.append("--overwrite")
+        if args.headless is not None:
+            command.append("--headless" if args.headless else "--no-headless")
+        subprocess.run(command, check=True)
+    print(f"Batch replay complete: {len(jobs)} episodes", flush=True)
+
+
+if __name__ == "__main__":
+    _cli_args = parse_args()
+    if _cli_args.raw_hdf5_dir is not None:
+        replay_directory(_cli_args)
+        sys.exit(0)
+
+
 import numpy as np
 import omnigibson as og
-import os
-import sys
 import torch as th
 import yaml
-from typing import Optional
 from omnigibson.envs import DataPlaybackWrapper
 from omnigibson.eval.utils.obs_utils import create_video_writer, write_video
 from omnigibson.macros import gm
@@ -150,15 +241,20 @@ def replay_hdf5_to_video(
     flush_every_n_steps: int,
     run_qa: bool = False,
     episode_id: Optional[int] = None,
+    output_dir: Optional[str] = None,
+    overwrite: bool = False,
 ) -> int:
     """按任务类型回放指定 HDF5 回合并生成视频."""
     if task_name in ADEPT_TASK_NAMES:
         from omnigibson.adept.replay import replay
 
-        return replay(input_path, task_name, episode_id=episode_id, run_qa=run_qa)
+        return replay(input_path, task_name, episode_id=episode_id, run_qa=run_qa,
+                      output_dir=output_dir, overwrite=overwrite)
 
     # get the hdf5 file name without extension
     input_filename = os.path.splitext(os.path.basename(input_path))[0]
+    if episode_id is not None:
+        input_filename = f"{input_filename}_episode_{episode_id}"
 
     gm.ENABLE_TRANSITION_RULES = False
 
@@ -355,34 +451,8 @@ def replay_hdf5_to_video(
     return episode_id
 
 
-def main():
-    """解析离线回放参数并选择任务对应的回放流程."""
-    parser = argparse.ArgumentParser(
-        description="Replay HDF5 files and generate videos"
-    )
-    parser.add_argument("input", type=str, help="Path to the HDF5 file")
-    parser.add_argument(
-        "-t",
-        "--task",
-        type=str,
-        required=True,
-        help="Task name (e.g., opening, placing_book_on_shelf)",
-    )
-    parser.add_argument(
-        "--flush_every_n_steps", type=int, default=1000, help="Flush data every N steps"
-    )
-    parser.add_argument(
-        "--qa", action="store_true", help="Run QA metrics during replay"
-    )
-    parser.add_argument(
-        "--episode_id", "--episode-id",
-        type=int,
-        default=None,
-        help="Episode ID to replay. If omitted with --qa in an interactive shell, asks for a selection.",
-    )
-    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=None)
-
-    args = parser.parse_args()
+def main(args):
+    """根据已解析参数运行单文件回放."""
     if args.headless is not None:
         gm.HEADLESS = args.headless
 
@@ -392,6 +462,8 @@ def main():
         flush_every_n_steps=args.flush_every_n_steps,
         run_qa=args.qa,
         episode_id=args.episode_id,
+        output_dir=args.output_dir,
+        overwrite=args.overwrite,
     )
 
     print("All done!")
@@ -399,4 +471,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(_cli_args)

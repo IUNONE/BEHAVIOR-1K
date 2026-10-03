@@ -110,9 +110,10 @@ def build_environment_config(task_name, purpose="check_env", instance_id=1, max_
 
 
 def constrain_action(action, robot):
-    """将传入环境的底盘速度分量置零."""
+    """固定底盘及躯干, 使遥操作与 EEF20 部署使用相同自由度."""
     action = action.clone()
     action[..., robot.base_action_idx] = 0
+    action[..., robot.trunk_action_idx] = robot.reset_joint_pos[robot.trunk_control_idx]
     return action
 
 

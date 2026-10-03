@@ -79,8 +79,8 @@ def parse_args() -> argparse.Namespace:
         default="public_test",
         help="Instance split to evaluate. Default: public_test.",
     )
-    parser.add_argument("--all-instances", action="store_true", help="Check all saved ADEPT instances in numeric order.")
-    parser.add_argument("--layout", default=None, help="Summary preview ROWSxCOLS layout, e.g. 3x4; default 1x1.")
+    parser.add_argument("--all-instances", action="store_true", help="Run all saved ADEPT instances in numeric order.")
+    parser.add_argument("--layout", default=None, help="Summary ROWSxCOLS layout; default: check_env 1x1, ADEPT eval 3x4.")
     parser.add_argument("--num-rollouts", type=int, default=1, help="Rollouts per instance.")
     parser.add_argument(
         "--max-steps",
@@ -104,7 +104,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "In-process policy as module:Class for ADEPT --mode train. "
-            "OpenWAM uses benchmarks.behavior.openwam2behavior_interface:OpenWAMBehaviorPolicy "
+            "OpenWAM uses omnigibson.adept.openwam:OpenWAMBehaviorPolicy "
             "and --port 8848."
         ),
     )
@@ -117,8 +117,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--write-video",
         action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Save an MP4 rollout video (head + wrist cameras) per rollout under <output-dir>/videos.",
+        default=None,
+        help="Save rollout videos. Enabled by default for ADEPT train evaluation.",
     )
     parser.add_argument("--video-fps", type=int, default=30, help="Frame rate for saved rollout videos.")
     parser.add_argument(
@@ -132,11 +132,13 @@ def parse_args() -> argparse.Namespace:
         help="Run OmniGibson headless (default: True).",
     )
     args = parser.parse_args()
+    if args.write_video is None:
+        args.write_video = args.task_name in ADEPT_TASK_NAMES and args.mode == "train"
     if args.all_instances and args.instance_indices is not None:
         parser.error("--all-instances and --instance-indices are mutually exclusive.")
     if args.all_instances or args.layout is not None:
-        if args.mode != "check_env" or args.task_name not in ADEPT_TASK_NAMES:
-            parser.error("--all-instances and --layout require ADEPT --mode check_env.")
+        if args.mode not in {"check_env", "train"} or args.task_name not in ADEPT_TASK_NAMES:
+            parser.error("--all-instances and --layout require ADEPT --mode check_env or --mode train.")
     if args.layout is not None:
         from omnigibson.adept.preview_video_utils import parse_layout
         try:
