@@ -38,14 +38,15 @@ class ADEPTPlaybackWrapper(DataPlaybackWrapper):
         self.preview_writer = None
         self.exported_frames = 0
 
-    def prepare_export(self, group, task_name, episode_name, input_path, preview_dir):
+    def prepare_export(self, group, task_name, input_path):
         """分配状态及动作数据集, 保存任务文本和回放来源."""
         output = self.output_hdf5
         self.has_terminal = "terminal_state" in group
         self.frame_count = len(group["state"]) + int(self.has_terminal)
         transitions = self.frame_count - 1
         parameters = json.loads(group.attrs["task_parameters"])
-        source_id = group.attrs.get("source_episode_id", f"robot/{task_name}/{episode_name}")
+        source_name = f"episode_{Path(input_path).stem}_d{int(group.name.rsplit('_', 1)[1]):06d}"
+        source_id = group.attrs.get("source_episode_id", f"robot/{task_name}/{source_name}")
         output.attrs.update({
             "source": "BEHAVIOR-1K", "embodiment": "r1pro",
             "source_episode_id": source_id,
@@ -96,7 +97,7 @@ class ADEPTPlaybackWrapper(DataPlaybackWrapper):
             camera = output.create_group(f"cameras/{view}")
             camera.attrs["axes"] = "opencv_x_right_y_down_z_forward"
             camera.create_dataset("camera2world", (self.frame_count, 4, 4), dtype="f4")
-        self.preview_writer = VideoWriter(preview_dir / "preview.mp4", self.fps)
+        self.preview_writer = VideoWriter(Path(output.filename).with_suffix(".mp4"), self.fps)
 
     def capture_state(self, state_index):
         """在物理传播前渲染源状态并同步保存图像及世界系位姿."""
@@ -135,8 +136,9 @@ class ADEPTPlaybackWrapper(DataPlaybackWrapper):
         self.input_hdf5.close()
 
 
-def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None, overwrite=False):
-    """将一个原始回合导出为 ADEPT HDF5 及同步预览."""
+def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None, overwrite=False,
+           output_episode_index=0):
+    """按指定输出编号导出原始回合的 ADEPT HDF5 及同步预览."""
     if output_dir is None:
         raise ValueError("ADEPT replay requires --output-dir")
     gm.ENABLE_TRANSITION_RULES = False
@@ -149,10 +151,9 @@ def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None
         episodes = {int(key.removeprefix("demo_")): group.attrs["num_samples"]
                     for key, group in source["data"].items() if key.startswith("demo_") and group.attrs["num_samples"] > 0}
         episode_id = max(episodes, key=episodes.get) if episode_id is None else episode_id
-    episode_name = f"episode_{path.stem}_d{episode_id:06d}"
+    episode_name = f"episode_{output_episode_index:06d}"
     directory = Path(output_dir).expanduser()
     destination = directory / f"{episode_name}.hdf5"
-    preview_dir = directory / episode_name
     sensors = config["env"]["external_sensors"]
     for sensor in sensors:
         sensor["include_in_obs"] = True
@@ -166,7 +167,7 @@ def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None
         )
         configure_robot_physics(env)
         group = env.input_hdf5[f"data/demo_{episode_id}"]
-        env.prepare_export(group, task_name, episode_name, path, preview_dir)
+        env.prepare_export(group, task_name, path)
         env.playback_episode(episode_id, record_data=False, state_observation_callback=env.capture_state)
         if env.has_terminal:
             import torch as th

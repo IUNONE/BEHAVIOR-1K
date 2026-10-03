@@ -36,13 +36,21 @@ def parse_args():
         help="Episode ID to replay. If omitted with --qa in an interactive shell, asks for a selection.",
     )
     parser.add_argument("--output-dir", help="ADEPT episode HDF5 and preview output directory")
+    parser.add_argument(
+        "--output-episode-index", type=int, default=None,
+        help="ADEPT output episode index for single-file replay; default 0. Directory replay numbers episodes from 0.",
+    )
     parser.add_argument("--overwrite", action="store_true", help="replace an existing ADEPT export")
     parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=None)
 
     args = parser.parse_args()
+    if args.output_episode_index is not None and args.output_episode_index < 0:
+        parser.error("--output-episode-index must be non-negative")
     if args.input is not None and args.task is None:
         parser.error("single-file replay requires --task")
     if args.raw_hdf5_dir is not None:
+        if args.output_episode_index is not None:
+            parser.error("--output-episode-index is for single-file replay; directory replay assigns indices")
         if args.episode_id is not None:
             parser.error("--episode-id selects a single-file episode; directory mode replays every nonempty episode")
         if args.output_dir is None:
@@ -51,7 +59,7 @@ def parse_args():
 
 
 def replay_directory(args):
-    """按文件和回合排序, 在独立子进程中顺序回放目录内全部非空回合."""
+    """按文件和回合排序, 连续编号并在独立子进程中导出非空回合."""
     import h5py
 
     directory = Path(args.raw_hdf5_dir).expanduser().resolve()
@@ -78,6 +86,7 @@ def replay_directory(args):
         command = [sys.executable, "-B", str(Path(__file__).resolve()), str(path),
                    "--task", task, "--episode-id", str(episode),
                    "--output-dir", str(Path(args.output_dir).expanduser().resolve()),
+                   "--output-episode-index", str(index - 1),
                    "--flush_every_n_steps", str(args.flush_every_n_steps)]
         if args.qa:
             command.append("--qa")
@@ -243,13 +252,14 @@ def replay_hdf5_to_video(
     episode_id: Optional[int] = None,
     output_dir: Optional[str] = None,
     overwrite: bool = False,
+    output_episode_index: int = 0,
 ) -> int:
     """按任务类型回放指定 HDF5 回合并生成视频."""
     if task_name in ADEPT_TASK_NAMES:
         from omnigibson.adept.replay import replay
 
         return replay(input_path, task_name, episode_id=episode_id, run_qa=run_qa,
-                      output_dir=output_dir, overwrite=overwrite)
+                      output_dir=output_dir, overwrite=overwrite, output_episode_index=output_episode_index)
 
     # get the hdf5 file name without extension
     input_filename = os.path.splitext(os.path.basename(input_path))[0]
@@ -464,6 +474,7 @@ def main(args):
         episode_id=args.episode_id,
         output_dir=args.output_dir,
         overwrite=args.overwrite,
+        output_episode_index=0 if args.output_episode_index is None else args.output_episode_index,
     )
 
     print("All done!")

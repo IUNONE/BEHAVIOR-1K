@@ -97,6 +97,33 @@ fi
 WORKDIR=$(pwd)
 ARCH=$(uname -m)
 
+# Colored, numbered progress output
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# Fixed step count so numbering stays stable regardless of selected components:
+# 1: conda env, 2: PyTorch, 3: BDDL, 4: OmniGibson, 5: JoyLo, 6: Eval,
+# 7: asset pipeline, 8: datasets
+TOTAL_STEPS=8
+CURRENT_STEP=0
+
+step() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    echo -e "\n${GREEN}[${CURRENT_STEP}/${TOTAL_STEPS}] $1${NC}"
+}
+step_done() {
+    echo -e "${GREEN}[${CURRENT_STEP}/${TOTAL_STEPS}] ✅ $1${NC}"
+}
+skip_step() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    echo -e "\n${YELLOW}[${CURRENT_STEP}/${TOTAL_STEPS}] ⏭  Skip: $1${NC}"
+}
+substep() {
+    echo -e "${CYAN}    → $1${NC}"
+}
+
 # Check conda environment condition early (unless creating new environment)
 if [ "$NEW_ENV" = false ]; then
     if [ -z "$CONDA_PREFIX" ]; then
@@ -227,7 +254,7 @@ fi
 
 # Create conda environment
 if [ "$NEW_ENV" = true ]; then
-    echo "Creating conda environment '$NEW_ENV_NAME'..."
+    step "Creating conda environment '$NEW_ENV_NAME'..."
     command -v conda >/dev/null || { echo "ERROR: Conda not found"; exit 1; }
     
     # Set auto-accept environment variable if user agreed to TOS
@@ -254,32 +281,45 @@ if [ "$NEW_ENV" = true ]; then
     
     [[ "$CONDA_DEFAULT_ENV" != "$NEW_ENV_NAME" ]] && { echo "ERROR: Failed to activate environment '$NEW_ENV_NAME'"; exit 1; }
 
+    step_done "Conda environment '$NEW_ENV_NAME' created and activated"
+else
+    skip_step "conda environment creation (add --new-env to create one)"
 fi
 
 # Install PyTorch via pip with CUDA support
-echo "Installing PyTorch with CUDA $CUDA_VERSION support..."
+step "Installing PyTorch with CUDA $CUDA_VERSION support..."
+
+# If a SOCKS proxy is configured, httpx (used by huggingface_hub for dataset downloads)
+# needs the extra 'socksio' package — install it upfront so downloads don't fail later.
+if env | grep -qiE '^(https?|all)_proxy=.*socks'; then
+    substep "SOCKS proxy detected, installing httpx[socks] support..."
+    python -m pip install "httpx[socks]"
+fi
 
 # Determine the CUDA version string for pip URL (e.g., cu128, cu126, etc.)
 CUDA_VER_SHORT=$(echo "$CUDA_VERSION" | sed 's/\.//g')  # e.g. convert 12.8 to 128
 
 python -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 torchcodec==0.5 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
 
-echo "✓ PyTorch installation completed"
-
 # Install numpy <2 to avoid conflicts
-echo "Installing numpy..."
+substep "Installing numpy..."
 python -m pip install "numpy<2"
+
+step_done "PyTorch + numpy installation finished"
 
 # Install BDDL
 if [ "$BDDL" = true ]; then
-    echo "Installing BDDL..."
+    step "Installing BDDL..."
     [ ! -d "bddl3" ] && { echo "ERROR: bddl directory not found"; exit 1; }
     python -m pip install -e "$WORKDIR/bddl3"
+    step_done "BDDL installation finished"
+else
+    skip_step "BDDL installation (add --bddl to install)"
 fi
 
 # Install OmniGibson with Isaac Sim
 if [ "$OMNIGIBSON" = true ]; then
-    echo "Installing OmniGibson..."
+    step "Installing OmniGibson..."
     [ ! -d "OmniGibson" ] && { echo "ERROR: OmniGibson directory not found"; exit 1; }
     
     # Check Python version
@@ -313,7 +353,7 @@ if [ "$OMNIGIBSON" = true ]; then
 
     # Install pre-commit for dev setup
     if [ "$DEV" = true ]; then
-        echo "Setting up pre-commit..."
+        substep "Setting up pre-commit..."
         conda install -c conda-forge pre-commit -y
         cd "$WORKDIR/OmniGibson"
         pre-commit install || true  # Ignore errors here in case the directory is not a git repo
@@ -330,9 +370,9 @@ if [ "$OMNIGIBSON" = true ]; then
     
     # Check if already installed
     if python -c "import isaacsim" 2>/dev/null; then
-        echo "Isaac Sim already installed, skipping..."
+        substep "Isaac Sim already installed, skipping..."
     else
-        echo "Installing Isaac Sim via pip..."
+        substep "Installing Isaac Sim via pip..."
 
         # For aarch, do alternative install via direct one-liner
         if [ "$ARCH" = "aarch64" ]; then
@@ -388,10 +428,10 @@ if [ "$OMNIGIBSON" = true ]; then
                     fi
 
                     if [ -f "$filepath" ]; then
-                        echo "Using cached $pkg"
+                        echo "    Using cached $pkg"
                     else
                         local partial_filepath="${filepath}.part"
-                        echo "Downloading $pkg..."
+                        echo "    Downloading $pkg..."
                         if ! curl --fail --location --show-error \
                             --retry 5 --retry-delay 3 --connect-timeout 30 \
                             --continue-at - "$url" -o "$partial_filepath"; then
@@ -405,7 +445,7 @@ if [ "$OMNIGIBSON" = true ]; then
                     wheel_files+=("$filepath")
                 done
 
-                echo "Installing Isaac Sim packages..."
+                echo "    Installing Isaac Sim packages..."
                 python -m pip install "${wheel_files[@]}" || return 1
 
                 # Verify installation
@@ -423,45 +463,59 @@ if [ "$OMNIGIBSON" = true ]; then
 
         # Fix websockets conflict - remove any pip_prebundle/websockets under extscache
         if [ -n "$ISAAC_PATH" ] && [ -d "$ISAAC_PATH/extscache" ]; then
-            echo "Fixing websockets conflict..."
+            substep "Fixing websockets conflict..."
             find "$ISAAC_PATH/extscache" -type d -name "websockets" -path "*/pip_prebundle/*" -exec rm -rf {} + 2>/dev/null || true
         fi
 
         # Fix packaging conflict - remove conflicting version
         # There is a conflict where isaacsim enforces 23.0 but omni kit ships with 25.0
         if [ -d "$CONDA_PREFIX/lib/python3.11/site-packages/isaacsim/extscache/omni.services.pip_archive-0.16.0+107.0.3.lx64.cp311/pip_prebundle/packaging" ]; then
-            echo "Fixing packaging conflict..."
+            substep "Fixing packaging conflict..."
             rm -rf "$CONDA_PREFIX/lib/python3.11/site-packages/isaacsim/extscache/omni.services.pip_archive-0.16.0+107.0.3.lx64.cp311/pip_prebundle/packaging"
         fi
     fi
     
     # Force reinstall cffi 1.17.1 to resolve compatibility issues with Isaac Sim extensions
+    substep "Force reinstalling cffi 1.17.1 (Isaac Sim compatibility)..."
     python -m pip install --force-reinstall cffi==1.17.1
     # Force reinstall websockets >= 15.0.1 because it's been overwritten by Isaac Sim with an older version
+    substep "Force reinstalling websockets>=15.0.1..."
     python -m pip install --force-reinstall "websockets>=15.0.1"
 
-    echo "OmniGibson installation completed successfully!"
+    step_done "OmniGibson (+ Isaac Sim) installation finished"
+else
+    skip_step "OmniGibson installation (add --omnigibson to install)"
 fi
 
 # Install JoyLo
 if [ "$JOYLO" = true ]; then
-    echo "Installing JoyLo..."
+    step "Installing JoyLo..."
     [ ! -d "joylo" ] && { echo "ERROR: joylo directory not found"; exit 1; }
     python -m pip install -e "$WORKDIR/joylo"
+    step_done "JoyLo installation finished"
+else
+    skip_step "JoyLo installation (add --joylo to install)"
 fi
 
 # Install Eval
 if [ "$EVAL" = true ]; then
+    step "Installing evaluation dependencies (torch-cluster)..."
     # get torch version via pip and install corresponding torch-cluster
     TORCH_VERSION=$(python -m pip show torch | grep Version | cut -d " " -f 2)
     python -m pip install torch-cluster -f https://data.pyg.org/whl/torch-${TORCH_VERSION}.html
+    step_done "Evaluation dependencies installation finished"
+else
+    skip_step "evaluation dependencies installation (add --eval to install)"
 fi
 
 # Install asset pipeline
 if [ "$ASSET_PIPELINE" = true ]; then
-    echo "Installing asset pipeline..."
+    step "Installing asset pipeline..."
     [ ! -d "asset_pipeline" ] && { echo "ERROR: asset_pipeline directory not found"; exit 1; }
     python -m pip install -r "$WORKDIR/asset_pipeline/requirements.txt"
+    step_done "Asset pipeline installation finished"
+else
+    skip_step "asset pipeline installation (add --asset-pipeline to install)"
 fi
 
 # Install datasets
@@ -471,7 +525,7 @@ if [ "$DATASET" = true ]; then
         exit 1
     }
 
-    echo "Installing datasets..."
+    step "Installing datasets..."
 
     # Determine if we should accept dataset license automatically
     DATASET_ACCEPT_FLAG=""
@@ -480,26 +534,30 @@ if [ "$DATASET" = true ]; then
     else
         DATASET_ACCEPT_FLAG="False"
     fi
-    
+
     export OMNI_KIT_ACCEPT_EULA=YES
-    
-    echo "Downloading OmniGibson robot assets..."
+
+    substep "Downloading OmniGibson robot assets (1/3)..."
     python -c "from omnigibson.utils.asset_utils import download_omnigibson_robot_assets; download_omnigibson_robot_assets()" || {
         echo "ERROR: OmniGibson robot assets installation failed"
         exit 1
     }
 
-    echo "Downloading BEHAVIOR-1K assets..."
+    substep "Downloading BEHAVIOR-1K assets (2/3)..."
     python -c "from omnigibson.utils.asset_utils import download_behavior_1k_assets; download_behavior_1k_assets(accept_license=${DATASET_ACCEPT_FLAG})" || {
         echo "ERROR: Dataset installation failed"
         exit 1
     }
 
-    echo "Downloading 2026 BEHAVIOR Challenge Task Instances..."
+    substep "Downloading 2026 BEHAVIOR Challenge Task Instances (3/3)..."
     python -c "from omnigibson.utils.asset_utils import download_2026_challenge_task_instances; download_2026_challenge_task_instances()" || {
         echo "ERROR: 2026 BEHAVIOR Challenge Task Instances installation failed"
         exit 1
     }
+
+    step_done "Datasets installation finished"
+else
+    skip_step "dataset downloads (add --dataset to install)"
 fi
 
 echo ""
