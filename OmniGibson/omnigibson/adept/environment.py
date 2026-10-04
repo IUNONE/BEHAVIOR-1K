@@ -96,6 +96,10 @@ def build_environment_config(task_name, purpose="check_env", instance_id=1, max_
     parameters = read_json(directory / "instances" / str(instance_id) / "task_parameters.json")
     sensor = camera_config(config)
     sensor["include_in_obs"] = purpose != "collection"
+    # Like official JoyLo external cameras, collection uses the USD camera for
+    # viewports without attaching RGB annotators to the disabled sensor output.
+    if purpose == "collection":
+        sensor["modalities"] = []
     return {
         "env": {**config["frequencies"], "external_sensors": [sensor]},
         "scene": {"type": ADEPTScene.__name__, "scene_file": str(scene_path), "include_robots": False, "use_floor_plane": False},

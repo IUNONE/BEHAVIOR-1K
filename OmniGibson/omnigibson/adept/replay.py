@@ -157,6 +157,8 @@ def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None
     sensors = config["env"]["external_sensors"]
     for sensor in sensors:
         sensor["include_in_obs"] = True
+        # Collection only renders GUI viewports; playback needs sensor RGB data.
+        sensor["modalities"] = ["rgb"]
     env = None
     try:
         env = ADEPTPlaybackWrapper.create_from_hdf5(

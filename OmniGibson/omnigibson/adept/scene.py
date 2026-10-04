@@ -8,6 +8,12 @@ from packaging.version import Version
 class ADEPTScene(Scene):
     """保存 ADEPT 场景及软件版本信息."""
 
+    def _should_load_object(self, obj_info, task_metadata):
+        """排除 ADEPT 模板中的通用 Robot, 由当前环境配置重新创建机器人."""
+        if not self._include_robots and obj_info["class_name"] == "Robot":
+            return False
+        return super()._should_load_object(obj_info, task_metadata)
+
     @staticmethod
     def _get_current_versions():
         """读取已安装的软件版本, 避免调用版本控制命令."""
