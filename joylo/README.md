@@ -13,16 +13,6 @@ python -B scripts/joylo/view_joylo_urdf.py \
   --without_joylo
 ```
 
-打开终端输出的网址，默认 `http://127.0.0.1:8080`。 查看器支持双臂 JoyLo / R1 Pro、各关节滑块、电机 ID、恢复零位和恢复标定位。 
-
-```
-python -B scripts/joylo/view_joylo_urdf.py \
-  --live-arm right \
-  --port /dev/cu.usbserial-FTBIHTHX \
-  --baudrate 2000000 \
-  --joint-config configs/joint_config_right_arm.yaml
-```
-
 ---
 
 ## 2. Nintendo JoyCon Configuration
@@ -119,13 +109,43 @@ python joylo/scripts/calibrate_joints.py
 
 This will create a `joint_config_default.yaml` under `joylo/configs`.
 
+单臂支持：
+```bash
+python -B scripts/calibrate_joints.py \
+  --robot R1Pro \
+  --arm right \
+  --port /dev/cu.usbserial-FTBIHTHX \
+  --baudrate 2000000 \
+  --gello-name right_arm \
+  --overwrite
+```
+
+按终端提示操作：
+
+1. 按 Enter 连接。
+2. 摆成右臂零位 (joylo/imgs/R1pro\_zero\_R.jpg)，静止后按 Enter。
+3. 摆成右臂标定位 (joylo/imgs/R1pro\_calibration\_R.jpg)，静止后按 Enter。
+
+输出 `joylo/configs/joint_config_right_arm.yaml` 文件.
+
+校验检查模型跟随：
+
+```
+python -B scripts/joylo/view_joylo_urdf.py \
+  --live-arm right \
+  --port /dev/cu.usbserial-FTBIHTHX \
+  --baudrate 2000000 \
+  --joint-config configs/joint_config_right_arm.yaml
+```
+
 #### Reference Positions
 
 The calibration script requires each arm to be placed in two fixed reference positions, called the **"zero"** and **"calibration"** positions. 
 
-| Zero Position                                  | Calibration                                                  |
-|------------------------------------------------|--------------------------------------------------------------|
-| ![](imgs/R1pro_zero_L.jpg) ![](imgs/R1pro_zero_R.jpg) | ![](imgs/R1pro_calibration_L.jpg) ![](imgs/R1pro_calibration_R.jpg) |
+| Arm | Zero Position                                  | Calibration                                                  |
+|-----|------------------------------------------------|--------------------------------------------------------------|
+| left | ![](imgs/R1pro_zero_L.jpg) | ![](imgs/R1pro_calibration_L.jpg) |
+| right | ![](imgs/R1pro_zero_R.jpg) | ![](imgs/R1pro_calibration_R.jpg) |
 
 ---
 
@@ -206,3 +226,6 @@ sudo apt install libhidapi-hidraw0
 ## JoyCon Button Mapping
 
 ![Joycon instruction](imgs/joycon_button_mapping.png)
+
+![Joycon instruction zh](imgs/joycon_button_mapping_zh.png)
+

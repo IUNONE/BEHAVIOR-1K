@@ -25,7 +25,7 @@ dependencies:
   - pycollada=0.9.3
 
   # Native HID library for Nintendo Joy-Con access.
-  - hidapi
+  - libhidapi>=0.14
   - pip:
       # Motor calibration, serial communication and command-line arguments.
       - dynamixel-sdk

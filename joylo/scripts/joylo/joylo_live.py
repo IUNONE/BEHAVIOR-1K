@@ -1,4 +1,4 @@
-"""Read-only position streaming after disabling torque on the selected right arm."""
+"""Read-only position streaming after disabling torque on the selected arm."""
 import threading
 import time
 from pathlib import Path
@@ -6,13 +6,16 @@ import numpy as np
 import yaml
 
 
-class RightArmStream:
-    def __init__(self, port, baudrate, config):
+class ArmStream:
+    def __init__(self, port, baudrate, config, arm):
+        if arm not in ('left', 'right'):
+            raise ValueError('Expected left or right arm')
+        self.arm = arm
         data = yaml.safe_load(Path(config).read_text())
         joints = data['joints']
-        self.ids = list(range(9, 18))
-        if data.get('robot') != 'R1Pro' or data.get('arm') != 'right' or joints.get('ids') != self.ids:
-            raise ValueError('Expected an R1Pro right-arm calibration with IDs 9–17')
+        self.ids = list(range(0, 9) if arm == 'left' else range(9, 18))
+        if data.get('robot') != 'R1Pro' or data.get('arm') != arm or joints.get('ids') != self.ids:
+            raise ValueError(f'Expected an R1Pro {arm}-arm calibration with IDs {self.ids[0]}–{self.ids[-1]}')
         self.offsets = np.asarray(joints['offsets'], dtype=float)
         self.signs = np.asarray(joints['signs'], dtype=float)
         if (self.offsets.shape != (9,) or self.signs.shape != (9,)

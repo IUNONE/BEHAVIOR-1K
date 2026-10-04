@@ -81,7 +81,7 @@ def main() -> None:
     parser.add_argument("--backend", choices=["viser", "matplotlib"], default="viser")
     parser.add_argument("--port", default="8080", help="Viewer port, or serial device in live mode")
     parser.add_argument("--viewer-port", type=int, default=8080)
-    parser.add_argument("--live-arm", choices=["right"])
+    parser.add_argument("--live-arm", choices=["left", "right"])
     parser.add_argument("--baudrate", type=int, default=2000000)
     parser.add_argument("--joint-config", type=Path)
     parser.add_argument("--solo", action="store_true", help="Show only JoyLo")
@@ -94,8 +94,8 @@ def main() -> None:
             parser.error("Live mode requires the JoyLo Viser viewer")
         if args.joint_config is None or args.port == "8080":
             parser.error("Live mode requires --joint-config and --port SERIAL_DEVICE")
-        from joylo_live import RightArmStream
-        live = RightArmStream(args.port, args.baudrate, args.joint_config)
+        from joylo_live import ArmStream
+        live = ArmStream(args.port, args.baudrate, args.joint_config, args.live_arm)
         args.port = args.viewer_port
     else:
         try:

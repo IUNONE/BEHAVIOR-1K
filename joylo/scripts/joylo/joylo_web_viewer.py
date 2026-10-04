@@ -147,9 +147,9 @@ def run_viewer(model: URDF, initial_degrees: Sequence[float], port: int = 8080,
     server = create_server(port)
     try:
         if live is not None:
-            if 'right' not in arm_sides(model):
-                raise ValueError('Live mode requires a right or dual-arm model')
-            input('Close DYNAMIXEL Wizard and support the right arm. Enter to disable torque and connect: ')
+            if live.arm not in arm_sides(model):
+                raise ValueError(f'Live mode requires a {live.arm} or dual-arm model')
+            input(f'Close DYNAMIXEL Wizard and support the {live.arm} arm. Enter to disable torque and connect: ')
             live.start()
         _serve(server, model, initial_degrees, r1, live)
     finally:
@@ -327,7 +327,7 @@ def _serve(server: viser.ViserServer, model: URDF, initial_degrees: Sequence[flo
         for handles in sliders:
             for handle in handles:
                 handle.disabled = True
-        live_panel = server.gui.add_markdown("Connecting to right arm...")
+        live_panel = server.gui.add_markdown(f"Connecting to {live.arm} arm...")
 
     @reset.on_click
     def on_reset(_: object) -> None:
@@ -430,7 +430,7 @@ def _serve(server: viser.ViserServer, model: URDF, initial_degrees: Sequence[flo
                 if sample is not None and status.startswith('Connected') and sample[0] != last_sample:
                     last_sample, raw, calibrated = sample
                     q = calibrated[[0, 2, 4, 5, 6, 7, 8]]
-                    row = sides.index('right')
+                    row = sides.index(live.arm)
                     with state_lock:
                         desired[row] = q
                         dirty.set()
@@ -440,7 +440,10 @@ def _serve(server: viser.ViserServer, model: URDF, initial_degrees: Sequence[flo
                     details = '| ID | Raw ° | Calibrated ° |\n|---|---:|---:|\n'
                     details += '\n'.join(f'| {mid} | {a:.2f} | {b:.2f} |' for mid, a, b in zip(live.ids, raw, calibrated))
                     details += '\n\nJ1–J7: ' + ', '.join(f'{v:.2f}°' for v in q)
-                    details += f'\n\nPair difference 9−10: {calibrated[0]-calibrated[1]:.2f}°; 11−12: {calibrated[2]-calibrated[3]:.2f}°'
+                    details += (
+                        f'\n\nPair difference {live.ids[0]}−{live.ids[1]}: {calibrated[0]-calibrated[1]:.2f}°; '
+                        f'{live.ids[2]}−{live.ids[3]}: {calibrated[2]-calibrated[3]:.2f}°'
+                    )
                     outside = np.flatnonzero((q < low[row]) | (q > high[row])) + 1
                     if len(outside):
                         details += f'\n\n**Outside display limits: J{outside.tolist()}. JoyLo shows measured angles; R1 is clipped to its limits.**'

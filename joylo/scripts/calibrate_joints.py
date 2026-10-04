@@ -22,6 +22,12 @@ class Args:
     arm: Literal["both", "left", "right"] = "both"
     overwrite: bool = False
     """Replace an existing calibration file."""
+    combine_calibrate_results: bool = False
+    """Merge saved left/right calibrations without connecting to hardware."""
+    left_config: Path = CONFIG_DIR / "joint_config_left_arm.yaml"
+    """Left-arm input file for combining results."""
+    right_config: Path = CONFIG_DIR / "joint_config_right_arm.yaml"
+    """Right-arm input file for combining results."""
 
 
 def reference_positions(robot_name: str, arm: str = "both"):
@@ -66,6 +72,45 @@ def compute_joint_offsets_and_signs(joints_1, joints_2, robot_name, arm="both"):
     return signs, offsets_1
 
 
+def combine_calibrations(args: Args, output: Path):
+    if args.arm != "both":
+        raise ValueError("Combining results requires --arm both (the default)")
+    sources = {"left": args.left_config, "right": args.right_config}
+    if output.resolve() in {path.resolve() for path in sources.values()}:
+        raise ValueError("Combined output must not overwrite either input calibration")
+    data = {
+        "robot": args.robot,
+        "arm": "both",
+        "angle_unit": "degrees",
+        "joints": {"ids": [], "offsets": [], "signs": []},
+        "calibration": {"method": "merged_single_arm_calibrations"},
+    }
+    for side, path in sources.items():
+        with path.open() as file:
+            source = yaml.safe_load(file)
+        if (not isinstance(source, dict) or source.get("robot") != args.robot
+                or source.get("arm") != side or source.get("angle_unit") != "degrees"):
+            raise ValueError(f"{path}: expected a {args.robot} {side}-arm calibration in degrees")
+        ids, _, _ = reference_positions(args.robot, side)
+        joints = source.get("joints")
+        if not isinstance(joints, dict) or joints.get("ids") != ids:
+            raise ValueError(f"{path}: expected motor IDs {ids}")
+        offsets = np.asarray(joints.get("offsets"), dtype=float)
+        signs = np.asarray(joints.get("signs"), dtype=float)
+        if (offsets.shape != (len(ids),) or signs.shape != (len(ids),)
+                or not np.isfinite(offsets).all() or not np.isin(signs, [-1, 1]).all()):
+            raise ValueError(f"{path}: invalid calibration offsets/signs")
+        data["joints"]["ids"].extend(ids)
+        data["joints"]["offsets"].extend(offsets.tolist())
+        data["joints"]["signs"].extend(signs.astype(int).tolist())
+        data["calibration"][side] = source.get("calibration", {})
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w" if args.overwrite else "x") as file:
+        yaml.safe_dump(data, file, sort_keys=False)
+    print(f"Combined: {args.left_config} + {args.right_config}")
+    print(f"Saved: {output}; motor IDs: {data['joints']['ids']}")
+
+
 def main(args: Args):
     name = args.gello_name
     if not name or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in name):
@@ -75,6 +120,9 @@ def main(args: Args):
     output = CONFIG_DIR / f"joint_config_{name}.yaml"
     if output.exists() and not args.overwrite:
         raise FileExistsError(f"{output} already exists. Choose another name or pass --overwrite.")
+    if args.combine_calibrate_results:
+        combine_calibrations(args, output)
+        return
     ids, expected_1, expected_2 = reference_positions(args.robot, args.arm)
     print(f"Robot: {args.robot}; arm: {args.arm}; motor IDs: {ids}")
     print(f"Port: {args.port}; baudrate: {args.baudrate}; output: {output}")
