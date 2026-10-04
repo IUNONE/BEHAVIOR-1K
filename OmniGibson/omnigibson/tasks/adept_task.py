@@ -13,10 +13,14 @@ from omnigibson.tasks.behavior_task import BehaviorTask
 class ADEPTTask(BehaviorTask):
     """结合 BDDL 目标与配置的书本姿态约束判定 ADEPT 任务成功."""
 
-    def __init__(self, activity_name, parameters, activity_instance_id=1, termination_config=None, include_obs=False, book_pose_goal=None):
+    def __init__(
+        self, activity_name, parameters, activity_instance_id=1, termination_config=None, include_obs=False,
+        book_pose_goal=None, reset_camera_render_product=True,
+    ):
         """保存实例元数据并初始化原生任务接口."""
         self.parameters = parameters
         self.book_pose_goal = book_pose_goal
+        self._reset_camera_render_product = reset_camera_render_product
         super().__init__(activity_name=activity_name, activity_instance_id=activity_instance_id,
                          termination_config=termination_config, include_obs=include_obs,
                          online_object_sampling=False, use_presampled_robot_pose=True)
@@ -68,7 +72,10 @@ class ADEPTTask(BehaviorTask):
         """恢复实例初态与画面, 并在渲染更新后重新绑定物理句柄, 不推进物理步."""
         super().reset(env)
         og.sim.sync_physx_to_fabric()
-        env.external_sensors["table_side"].reset_render_product()
+        # JoyLo collection disables sensor render products and uses GUI viewports instead.
+        # Keep those products intact rather than rebuilding their inactive annotator graphs.
+        if self._reset_camera_render_product:
+            env.external_sensors["table_side"].reset_render_product()
         lazy.omni.usd.get_context().reset_renderer_accumulation()
         for _ in range(32):
             og.sim.render()

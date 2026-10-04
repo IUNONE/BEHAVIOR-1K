@@ -103,6 +103,7 @@ def build_environment_config(task_name, purpose="check_env", instance_id=1, max_
             "activity_instance_id": instance_id,
             "parameters": parameters,
             "book_pose_goal": config.get("book_pose_goal"),
+            "reset_camera_render_product": purpose != "collection",
             "termination_config": {"max_steps": config["max_steps"] if max_steps is None else max_steps},
             "include_obs": False,
         },
