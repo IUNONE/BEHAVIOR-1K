@@ -6,6 +6,7 @@ import torch as th
 import yaml
 
 import omnigibson as og
+import omnigibson.lazy as lazy
 import omnigibson.utils.transform_utils as T
 from omnigibson.adept import TASK_NAMES
 from omnigibson.adept.scene import ADEPTScene
@@ -75,8 +76,10 @@ def robot_config(config, purpose):
     robot["name"] = "robot"
     robot.update(deepcopy(config["robot"]))
     robot["obs_modalities"] = [] if purpose == "collection" else ["proprio", "rgb"]
+    # Inherit modalities from the robot, as in the official JoyLo configuration.
+    # A per-camera override would re-enable RGB during collection and also override
+    # the modalities selected by HDF5PlaybackWrapper when replaying the recording.
     robot["sensor_config"] = {f"{link}:Camera:0": {
-        "modalities": ["rgb"],
         "sensor_kwargs": {"image_height": 480, "image_width": 480},
     } for link in ("zed_link", "left_realsense_link", "right_realsense_link")}
     robot["sensor_config"]["zed_link:Camera:0"]["sensor_kwargs"]["horizontal_aperture"] = 40.0
@@ -155,8 +158,14 @@ def configure_robot_physics(env):
         indices = [robot.joints[f"{arm}_arm_joint{number}"].dof_indices[0] for number in range(1, 8)]
         angles = th.rad2deg(robot.get_joint_positions()[indices]).tolist()
         print(f"ADEPT initial {arm} arm j1-j7: {angles} degrees", flush=True)
-    head = robot.sensors[f"{robot.name}:zed_link:Camera:0"]
-    head.set_position_orientation(th.tensor([0.06, 0.0, 0.01]), th.tensor([-1., 0., 0., 0.]), frame="parent")
+    # Collection has no robot VisionSensor instances; the USD cameras still exist
+    # for the GUI. Update the camera prim directly, as JoyLo setup_cameras does.
+    with og.sim.editing_usd():
+        head = lazy.isaacsim.core.utils.prims.get_prim_at_path(
+            prim_path=f"{robot.links['zed_link'].prim_path}/Camera"
+        )
+        head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.06, 0.0, 0.01))
+        head.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
 
 
 def load_instance(env, task_name, instance_id, task_dir=None):
