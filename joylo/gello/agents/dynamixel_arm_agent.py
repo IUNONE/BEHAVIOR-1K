@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, Sequence
+import time
 
 import numpy as np
 
@@ -54,6 +55,7 @@ class DynamixelArmAgent(Agent):
         self._damping_motor_kp = damping_motor_kp
         self._damping_motor_kv = 2 * np.sqrt(damping_motor_kp) * 1.0
         self._current_enabled = False
+        self._motion_target = None
 
         # Initialize hardware
         self._robot.set_operating_mode(OperatingMode.NONE)
@@ -87,13 +89,55 @@ class DynamixelArmAgent(Agent):
             self._current_enabled = False
 
     def reset(self):
-        if self._reset_qpos is not None:
-            self._robot.set_operating_mode(OperatingMode.EXTENDED_POSITION)
-            self._robot._driver.set_gain(GainType.I, 150)
-            self._robot.command_joint_state(self._reset_qpos)
-            import time
+        """Release torque; resets must never initiate a position move."""
+        self._motion_target = None
+        self._robot.set_operating_mode(OperatingMode.NONE)
+        self._current_enabled = False
 
-            time.sleep(1)
+    def move_to(self, target):
+        """Begin a user-confirmed move; update it from the regular control loop."""
+        target = np.asarray(target, dtype=float)
+        current = self.get_joint_state()
+        if target.shape != current.shape or not np.isfinite([target, current]).all():
+            raise ValueError("Invalid position target/readings")
+        self.reset()
+        self._robot.set_operating_mode(OperatingMode.EXTENDED_POSITION)
+        self._motion_target = target.copy()
+        self._motion_command = current.copy()
+        self._motion_time = time.monotonic()
+        self._motion_deadline = self._motion_time + np.max(np.abs(target - current)) / np.deg2rad(10) + 5
+        self._settled_since = None
+
+    @property
+    def moving(self):
+        return self._motion_target is not None
+
+    def update_motion(self):
+        if not self.moving:
+            return
+        now = time.monotonic()
+        current = self.get_joint_state()
+        tracking_error = np.max(np.abs(current - self._motion_command))
+        if not np.isfinite(current).all() or now > self._motion_deadline or tracking_error > np.deg2rad(10):
+            self.reset()
+            print("Position move stopped: invalid readings, tracking error or timeout; torque OFF.")
+            return
+        # Limit target progression even if a control iteration is delayed.
+        step = np.deg2rad(10) * min(now - self._motion_time, 0.05)
+        self._motion_time = now
+        self._motion_command += np.clip(self._motion_target - self._motion_command, -step, step)
+        self._robot.command_joint_state(self._motion_command)
+        reached = np.max(np.abs(current - self._motion_target)) < np.deg2rad(2)
+        self._settled_since = (self._settled_since or now) if reached else None
+        if reached and now - self._settled_since >= 0.3:
+            self._motion_target = None
+            print("At target; holding. Support both arms, then press X to release and follow, or type stop.")
+
+    def close(self):
+        try:
+            self.reset()
+        finally:
+            self._robot._driver.close()
 
     def start(self):
         self._robot._driver.set_gain(GainType.I, 0)

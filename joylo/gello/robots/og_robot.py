@@ -566,6 +566,7 @@ class OGRobotServer:
         )
         obs["reset_joints"] = bool(self._joint_cmd["button_y"][0].item())
         obs["waiting_to_resume"] = self._waiting_to_resume
+        obs["reset_count"] = self._reset_count
 
         for i, arm in enumerate(self.robot.arm_names):
             arm_control_idx = self.robot.arm_control_idx[arm]
@@ -1040,6 +1041,7 @@ class OGRobotServer:
 
     def reset(self, increment_instance=True):
         """恢复环境与机器人初态, ADEPT 采集保持当前实例编号."""
+        self._reset_count = getattr(self, "_reset_count", 0) + 1
         if self._adept:
             increment_instance = False
         if self._recording_path is not None:

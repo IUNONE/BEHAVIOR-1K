@@ -1,21 +1,80 @@
 # Data Collection with JoyLo for OmniGibson
 
-## 1. JoyLo Assembly
+## 1. JoyLo
 
-```
+### 1.1 组装
+
+参考可视化窗口中的 3d 模型进行组装:
+```bash
 conda create -f joylo_minimal_env.yaml
 conda activate joylo-minimal
 
 python -B scripts/joylo/view_joylo_urdf.py
+```
 
+```bash
 python -B scripts/joylo/view_joylo_urdf.py \
   --robot mobile_nero \
   --without_joylo
 ```
 
+### 1.2 标定
+
+分别对单臂进行：
+```bash
+ARM="right"
+
+python -B scripts/calibrate_joints.py \
+  --robot R1Pro \
+  --arm "${ARM}" \
+  --port /dev/cu.usbserial-FTBIHTHX \
+  --baudrate 2000000 \
+  --gello-name "${ARM}_arm" \
+  --overwrite
+```
+
+按终端提示操作：
+
+1. 按 Enter 连接。
+2. 摆成右臂零位 (joylo/imgs/R1pro\_zero\_R.jpg)，静止后按 Enter。
+3. 摆成右臂标定位 (joylo/imgs/R1pro\_calibration\_R.jpg)，静止后按 Enter。
+
+| Arm | Zero Position                                  | Calibration                                                  |
+|-----|------------------------------------------------|--------------------------------------------------------------|
+| left | ![](imgs/R1pro_zero_L.jpg) | ![](imgs/R1pro_calibration_L.jpg) |
+| right | ![](imgs/R1pro_zero_R.jpg) | ![](imgs/R1pro_calibration_R.jpg) |
+
+输出 `joylo/configs/joint_config_right_arm.yaml` 文件.
+
+### 1.3 测试跟随
+
+viewer 中校验检查模型跟随：
+
+```bash
+python -B scripts/joylo/view_joylo_urdf.py \
+  --live-arm "${ARM}" \
+  --port /dev/cu.usbserial-FTBIHTHX \
+  --baudrate 2000000 \
+  --joint-config "configs/joint_config_${ARM}_arm.yaml"
+```
+
+双臂都检验过后, 合并 yaml 文件为 `configs/joint_config_default.yaml`
+```bash
+python -B scripts/calibrate_joints.py \
+  --combine_calibrate_results \
+  --overwrite
+```
+
+Isaacsim 中校验检查模型跟随：
+```bash
+python -B joylo/scripts/run_joylo.py \
+  --no_enable_joylo_torque \
+  --gello-name default
+```
+
 ---
 
-## 2. Nintendo JoyCon Configuration
+## 2. JoyCon
 
 #### Step 1: Configure udev rules
 
@@ -78,78 +137,27 @@ connect <MAC_ADDRESS>
 
 > **Note:** JoyCon lights should be static (not flashing) when connected successfully.
 
----
 
-## 3. JoyLo Calibration
-
-JoyLo sets can be assembled in slightly different ways, resulting in different orientations of the motors and offsets between the physical motor positions and the joint positions in simulation.
-
-Two calibration scripts are available:
-
-| Script | Purpose |
-|--------|---------|
-| `scripts/calibrate_joycons.py` | Calibrates the joysticks on the JoyCons |
-| `scripts/calibrate_joints.py` | Determines joint signs and offsets |
-
-You need to run both scripts once before the first time you perform any data collection on the PC.
-
-#### Running the calibrations
-
-1. Calibrate JoyCons
+#### Step 6: Calibrate JoyCons
 ```bash
-python joylo/scripts/calibrate_joycons.py
+python -B /scripts/calibrate_joycons.py
 ```
 
 This will create two `joycon_calibration_xxx.yaml` files under `joylo/configs`.
 
-2. Calibrate joints
+#### Step 7: Test JoyCons in Simulation
+
+![Joycon instruction](imgs/joycon_button_mapping.png)
+
+![Joycon instruction zh](imgs/joycon_button_mapping_zh.png)
+
 ```bash
-python joylo/scripts/calibrate_joints.py
+python -B joylo/scripts/run_joylo.py --only_joycon
 ```
-
-This will create a `joint_config_default.yaml` under `joylo/configs`.
-
-单臂支持：
-```bash
-python -B scripts/calibrate_joints.py \
-  --robot R1Pro \
-  --arm right \
-  --port /dev/cu.usbserial-FTBIHTHX \
-  --baudrate 2000000 \
-  --gello-name right_arm \
-  --overwrite
-```
-
-按终端提示操作：
-
-1. 按 Enter 连接。
-2. 摆成右臂零位 (joylo/imgs/R1pro\_zero\_R.jpg)，静止后按 Enter。
-3. 摆成右臂标定位 (joylo/imgs/R1pro\_calibration\_R.jpg)，静止后按 Enter。
-
-输出 `joylo/configs/joint_config_right_arm.yaml` 文件.
-
-校验检查模型跟随：
-
-```
-python -B scripts/joylo/view_joylo_urdf.py \
-  --live-arm right \
-  --port /dev/cu.usbserial-FTBIHTHX \
-  --baudrate 2000000 \
-  --joint-config configs/joint_config_right_arm.yaml
-```
-
-#### Reference Positions
-
-The calibration script requires each arm to be placed in two fixed reference positions, called the **"zero"** and **"calibration"** positions. 
-
-| Arm | Zero Position                                  | Calibration                                                  |
-|-----|------------------------------------------------|--------------------------------------------------------------|
-| left | ![](imgs/R1pro_zero_L.jpg) | ![](imgs/R1pro_calibration_L.jpg) |
-| right | ![](imgs/R1pro_zero_R.jpg) | ![](imgs/R1pro_calibration_R.jpg) |
 
 ---
 
-## 4. Collection
+## 3. Collection
 The system runs two scripts in separate terminals. The scripts are located under `joylo/scripts`:
 
 | Script | Purpose | Key Args |
@@ -220,12 +228,4 @@ Try:
 ```bash
 sudo apt install libhidapi-hidraw0
 ```
-
----
-
-## JoyCon Button Mapping
-
-![Joycon instruction](imgs/joycon_button_mapping.png)
-
-![Joycon instruction zh](imgs/joycon_button_mapping_zh.png)
 

@@ -1,5 +1,6 @@
 import glob
-import time
+import select
+import sys
 import yaml
 from dataclasses import dataclass
 from typing import Optional, Tuple, Literal
@@ -14,6 +15,7 @@ from gello.agents.bimanual_agent import (
 )
 from gello.agents.dynamixel_arm_agent import DynamixelArmAgent, DynamixelRobotConfig
 from gello.agents.joycon_agent import JoyconAgent
+from gello.agents.passive_teleop_agent import PassiveTeleopAgent
 from gello.env import RobotEnv
 from gello.robots.base_robot import PrintRobot
 from gello.utils.zmq_utils import ZMQRobotClient
@@ -41,21 +43,15 @@ class Args:
     damping_motor_kp: float = 0.3
     motor_feedback_type: str = "NONE"
     use_joycons: bool = True
+    only_joycon: bool = False
+    """Use Joy-Cons with the simulator without opening a motor serial port."""
+    no_enable_joylo_torque: bool = False
+    """Disable motor torque and only read angles; no reset, locking, or force feedback."""
 
 
-def main(args):
-    assert args.gello_model in ROBOT_TELEOP_CONFIGS, (
-        f"Unsupported gello model: {args.gello_model}"
-    )
-    bimanual_config = ROBOT_TELEOP_CONFIGS[args.gello_model]
-
-    if args.mock:
-        robot_client = PrintRobot(bimanual_config.joints_per_arm * 2, dont_print=True)
-    else:
-        robot_client = ZMQRobotClient(port=args.robot_port, host=args.hostname)
-
-    env = RobotEnv(robot_client, control_rate_hz=args.hz)
-
+def make_agent(args, bimanual_config, joycon_agent):
+    if args.only_joycon:
+        return PassiveTeleopAgent(bimanual_config, joycon_agent)
     # Find gello port
     gello_port = args.gello_port
     if gello_port is None:
@@ -86,10 +82,57 @@ def main(args):
         gripper_config=None,
     )
 
+    if args.no_enable_joylo_torque:
+        from gello.utils.dynamixel_utils import DynamixelDriver
+
+        joints = joint_config["joints"]
+        if joints.get("ids") != list(range(num_motors)) or joint_config.get("angle_unit") != "degrees":
+            raise ValueError("Torque-off mode requires a combined calibration in degrees with ordered motor IDs")
+        offsets = np.asarray(dynamixel_config.joint_offsets)
+        signs = np.asarray(dynamixel_config.joint_signs)
+        if not np.isfinite(offsets).all() or not np.isin(signs, [-1, 1]).all():
+            raise ValueError("Invalid calibration offsets/signs")
+        # The driver constructor checks Torque OFF writes. Do not construct the
+        # active arm agent: its start/reset/locking paths can enable torque.
+        driver = DynamixelDriver(ids=dynamixel_config.joint_ids, port=gello_port)
+        return PassiveTeleopAgent(
+            bimanual_config, joycon_agent,
+            read_joints=lambda: (driver.get_joints() - offsets) * signs,
+            close_reader=driver.close,
+        )
+
     # Default start joints
     start_joints = args.start_joints
     if start_joints is None:
         start_joints = bimanual_config.start_joints.copy()
+
+    arm_agent = DynamixelArmAgent(
+        port=gello_port,
+        dynamixel_config=dynamixel_config,
+        start_joints=start_joints,
+        damping_motor_kp=args.damping_motor_kp,
+    )
+    return BimanualAgent(
+        config=bimanual_config,
+        arm_agent=arm_agent,
+        joycon_agent=joycon_agent,
+        motor_feedback_type=MotorFeedbackConfig[args.motor_feedback_type],
+    )
+
+
+def main(args):
+    if args.only_joycon and args.no_enable_joylo_torque:
+        raise ValueError("--only_joycon and --no_enable_joylo_torque are mutually exclusive")
+    passive = args.only_joycon or args.no_enable_joylo_torque
+    if args.only_joycon and not args.use_joycons:
+        raise ValueError("--only_joycon requires Joy-Cons")
+    if passive and (args.mock or args.start_joints is not None or args.motor_feedback_type != "NONE"):
+        raise ValueError("Passive modes require a simulator and do not support mock, start-joints, or motor feedback")
+    assert args.gello_model in ROBOT_TELEOP_CONFIGS, f"Unsupported gello model: {args.gello_model}"
+    bimanual_config = ROBOT_TELEOP_CONFIGS[args.gello_model]
+    robot_client = (PrintRobot(bimanual_config.joints_per_arm * 2, dont_print=True) if args.mock
+                    else ZMQRobotClient(port=args.robot_port, host=args.hostname))
+    env = RobotEnv(robot_client, control_rate_hz=args.hz)
 
     # Create JoyCon agent
     joycon_agent = None
@@ -104,25 +147,17 @@ def main(args):
             enable_rumble=False,
         )
 
-    # Create arm agent and bimanual agent
-    arm_agent = DynamixelArmAgent(
-        port=gello_port,
-        dynamixel_config=dynamixel_config,
-        start_joints=start_joints,
-        damping_motor_kp=args.damping_motor_kp,
-    )
-
-    agent = BimanualAgent(
-        config=bimanual_config,
-        arm_agent=arm_agent,
-        joycon_agent=joycon_agent,
-        motor_feedback_type=MotorFeedbackConfig[args.motor_feedback_type],
-    )
+    if args.no_enable_joylo_torque:
+        print("Support both arms: connecting will disable torque. No motor motion commands will be sent.")
+    agent = make_agent(args, bimanual_config, joycon_agent)
 
     agent.start()
 
-    print("Going to start position")
-    agent.reset()
+    if passive:
+        print("Joy-Con only; motors disconnected." if args.only_joycon else "Torque OFF; reading JoyLo angles only.")
+        print("No motor resets, locks or force feedback. Press X to resume simulation.")
+    else:
+        print("Torque OFF. While sim is paused: type zero or align, then confirm. cancel/stop releases torque.")
 
     print_color("*" * 40, color="magenta", attrs=("bold",))
     print_color(
@@ -156,23 +191,24 @@ def main(args):
         color="magenta",
         attrs=("bold",),
     )
-    if args.gello_model == "r1":
+    if not passive and args.gello_model == "r1":
         print_color(
             "\t L / R: Lock the lower two wrist joints while leaving the upper joints free",
             color="magenta",
             attrs=("bold",),
         )
-    elif args.gello_model == "r1pro":
+    elif not passive and args.gello_model == "r1pro":
         print_color(
             "\t L / R: Lock the lower three wrist joints while leaving the upper joints free",
             color="magenta",
             attrs=("bold",),
         )
-    print_color(
-        "\t - / +: Lock the upper joints while leaving the lower wrist roll joint free.\n\t\tThe wrist pose will NOT be tracked while held.",
-        color="magenta",
-        attrs=("bold",),
-    )
+    if not passive:
+        print_color(
+            "\t - / +: Lock the upper joints while leaving the lower wrist roll joint free.\n\t\tThe wrist pose will NOT be tracked while held.",
+            color="magenta",
+            attrs=("bold",),
+        )
     print_color(
         "\t Y: Move the robot towards its reset pose", color="magenta", attrs=("bold",)
     )
@@ -181,15 +217,18 @@ def main(args):
     print_color("\t Home: Reset the environment\n", color="magenta", attrs=("bold",))
     print_color("*" * 40, color="magenta", attrs=("bold",))
 
-    obs = env.get_obs()
-    print_color("\nStart 🚀🚀🚀", color="green", attrs=("bold",))
-    start_time = time.time()
-    while True:
-        num = time.time() - start_time
-        message = f"\rTime passed: {round(num, 2)}          "
-        print_color(message, color="white", attrs=("bold",), end="", flush=True)
-        action = agent.act(obs)
-        obs = env.step(action)
+    try:
+        obs = env.get_obs()
+        print_color("\nStart 🚀🚀🚀", color="green", attrs=("bold",))
+        while True:
+            action = agent.act(obs)
+            if not passive and sys.stdin.isatty() and select.select([sys.stdin], [], [], 0)[0]:
+                command = sys.stdin.readline().strip().lower()
+                if command:
+                    agent.position_command(command, obs)
+            obs = env.step(action)
+    finally:
+        agent.close()
 
 
 if __name__ == "__main__":

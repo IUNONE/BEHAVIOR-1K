@@ -113,6 +113,10 @@ class BimanualAgent(Agent):
         self._feedback_type = motor_feedback_type
         self._enable_locking = joycon_agent is not None
         self._waiting_to_resume = False
+        self._pending_move = None
+        self._alignment_target = None
+        self._locks_armed = False
+        self._last_sim_reset = None
 
         mpa = config.motors_per_arm
         self._arm_info = {}
@@ -170,15 +174,14 @@ class BimanualAgent(Agent):
         raise ValueError(f"Unknown feedback type: {self._feedback_type}")
 
     def start(self):
+        self.reset()
         super().start()
-        self._arm.start()
-        modes = np.array(self.config.default_operation_modes)
-        self._arm.robot.set_operating_mode(modes.tolist())
 
     def reset(self):
         super().reset()
-        modes = np.array(self.config.default_operation_modes)
-        self._arm.robot.set_operating_mode(modes.tolist())
+        self._pending_move = None
+        self._alignment_target = None
+        self._locks_armed = False
 
         for arm in ("left", "right"):
             info = self._arm_info[arm]
@@ -188,19 +191,65 @@ class BimanualAgent(Agent):
 
         self._arm.reset()
 
+    def position_command(self, command, obs):
+        """Terminal commands are handled on the control thread, never in a motor thread."""
+        if command in ("stop", "cancel"):
+            self.reset()
+            print("Request cancelled; torque OFF. Release lock buttons before resuming.")
+            return
+        if not obs["waiting_to_resume"]:
+            print("Pause the simulation with P before requesting a position move.")
+            return
+        if command in ("zero", "align"):
+            self.reset()
+            target = np.zeros(self.config.motors_per_arm * 2) if command == "zero" else self._obs_to_gello(obs)
+            self._pending_move = (command, target.copy())
+            print(f"{command} target J1-J{self.config.joints_per_arm} (left, right), degrees:")
+            print(np.round(np.rad2deg(self._gello_to_obs(target)), 1).reshape(2, -1))
+            delta = np.max(np.abs(target - self._arm.get_joint_state()))
+            print(f"Largest motor change: {np.rad2deg(delta):.1f} deg. Check clearance; type confirm or cancel.")
+        elif command == "confirm" and self._pending_move is not None:
+            kind, target = self._pending_move
+            self._pending_move = None
+            if kind == "align" and not np.allclose(target, self._obs_to_gello(obs), atol=np.deg2rad(2), rtol=0):
+                print("Simulation pose changed; request align again.")
+                return
+            self._arm.move_to(target)
+            self._alignment_target = target.copy() if kind == "align" else None
+            print("Moving at at most 10 deg/s target progression; type stop to release torque.")
+        else:
+            print("Commands: zero, align, confirm, cancel, stop. Each move requires a new confirmation.")
+
+    def close(self):
+        self._arm.close()
+
     def act(self, obs: Dict) -> th.Tensor:
         gello_jnts = self._obs_to_gello(obs)
         target_jnts = gello_jnts.copy()
+        reset_count = obs.get("reset_count")
+        if reset_count != self._last_sim_reset:
+            self.reset()
+            self._last_sim_reset = reset_count
 
         # Handle wait-to-resume
         if obs["waiting_to_resume"] and not self._waiting_to_resume:
-            self._arm.set_reset_qpos(gello_jnts)
             self.reset()
-            print("Waiting to resume from sim...")
+            print("Simulation paused; torque OFF. Type zero/align then confirm, or X to follow without alignment.")
             self._waiting_to_resume = True
         elif not obs["waiting_to_resume"] and self._waiting_to_resume:
             self.start()
             self._waiting_to_resume = False
+
+        if self._pending_move is not None and self._pending_move[0] == "align":
+            if not np.allclose(self._pending_move[1], gello_jnts, atol=np.deg2rad(2), rtol=0):
+                self._pending_move = None
+                print("Alignment request cancelled: simulation pose changed.")
+        if self._alignment_target is not None and not np.allclose(
+            self._alignment_target, gello_jnts, atol=np.deg2rad(2), rtol=0
+        ):
+            self.reset()
+            print("Alignment stopped: simulation pose changed; torque OFF.")
+        self._arm.update_motion()
 
         if not self._waiting_to_resume:
             self._apply_impedance_feedback(gello_jnts, target_jnts, obs)
@@ -213,6 +262,10 @@ class BimanualAgent(Agent):
         # append joycon input if applicable
         if self._joycon is not None:
             jc_input = self._joycon.act(obs)
+            if jc_input[13] or jc_input[14]:  # Capture / Home cancel physical motion before sim exit/reset.
+                self.reset()
+            if self._arm.moving:
+                jc_input[9] = 0  # X may resume only after the move completes.
             action = th.cat([action, jc_input], dim=0)
         return action
 
@@ -231,13 +284,21 @@ class BimanualAgent(Agent):
         robot.command_current(currents[current_idxs], idxs=current_idxs)
 
     def _handle_joint_locking(self, obs, gello_jnts):
+        if not self._locks_armed:
+            self._locks_armed = not (
+                self._joycon.jc_left.get_button_l() or self._joycon.jc_right.get_button_r()
+                or self._joycon.gripper_info["-"]["status"] == -1
+                or self._joycon.gripper_info["+"]["status"] == -1
+            )
+            return
         robot = self._arm.robot
         mpa = self.config.motors_per_arm
         total = mpa * 2
         operating_modes = np.array(self.config.default_operation_modes[:total])
         active_mode_idxs = np.array([], dtype=int)
         active_cmd_idxs = np.array([], dtype=int)
-        commanded_jnts = gello_jnts + self._joint_offsets
+        # A lock button authorizes holding the physical pose, not moving to sim.
+        commanded_jnts = self._arm.get_joint_state()
 
         for arm in ("left", "right"):
             info = self._arm_info[arm]

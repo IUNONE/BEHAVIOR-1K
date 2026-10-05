@@ -378,6 +378,19 @@ class DynamixelDriver(DynamixelDriverProtocol):
                     raise RuntimeError(
                         f"Failed to set operating mode for Dynamixel with ID {dxl_id}"
                     )
+                if mo == OperatingMode.EXTENDED_POSITION:
+                    # Seed the goal BEFORE torque is enabled, so an old goal
+                    # cannot move the arm while the caller prepares a new one.
+                    position, result, error = self._packetHandler.read4ByteTxRx(
+                        self._portHandler, dxl_id, ADDR_PRESENT_POSITION,
+                    )
+                    if result != COMM_SUCCESS or error:
+                        raise RuntimeError(f"Failed to read hold position for motor {dxl_id}")
+                    result, error = self._packetHandler.write4ByteTxRx(
+                        self._portHandler, dxl_id, ADDR_GOAL_POSITION, position,
+                    )
+                    if result != COMM_SUCCESS or error:
+                        raise RuntimeError(f"Failed to seed hold position for motor {dxl_id}")
 
         self._operating_mode[idxs] = mode
 
