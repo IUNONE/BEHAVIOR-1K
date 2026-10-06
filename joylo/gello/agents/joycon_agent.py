@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 import numpy as np
 import torch as th
 import yaml
@@ -192,10 +193,12 @@ class JoyconAgent(Agent):
 
         for serial, side in zip((left_serial, right_serial), ("left", "right")):
             try:
-                path_serial = serial.replace(":", "-")
-                with open(
-                    f"{calibration_dir}/joycon_calibration_{path_serial}.yaml", "r"
-                ) as f:
+                path_serial = serial.replace(":", "-").lower()
+                path = Path(calibration_dir) / f"joycon_calibration_{path_serial}.yaml"
+                if not path.is_file():
+                    # Older macOS calibrations used uppercase Bluetooth addresses.
+                    path = Path(calibration_dir) / f"joycon_calibration_{path_serial.upper()}.yaml"
+                with path.open("r") as f:
                     self.calibration_data["joystick"][side] = yaml.load(
                         f, Loader=yaml.FullLoader
                     )["joystick"]

@@ -69,7 +69,7 @@ right_serial = jc_id_right[2]
 
 # Save each joycon's calibration in a file with its serial number
 for serial, side in zip((left_serial, right_serial), ("left", "right")):
-    path_serial = serial.replace(":", "-")
+    path_serial = serial.replace(":", "-").lower()
     with open(f"{SAVE_DIR}/joycon_calibration_{path_serial}.yaml", "w+") as f:
         yaml.dump({"joystick": joystick_limits[side], "side": side}, f)
 

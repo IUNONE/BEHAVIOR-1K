@@ -154,9 +154,11 @@ def replay(input_path, task_name, episode_id=None, run_qa=False, output_dir=None
     episode_name = f"episode_{output_episode_index:06d}"
     directory = Path(output_dir).expanduser()
     destination = directory / f"{episode_name}.hdf5"
-    sensors = config["env"]["external_sensors"]
+    # JoyLo's shoulder cameras are GUI-only; export the fixed dataset view.
+    sensors = [sensor for sensor in config["env"]["external_sensors"] if sensor["name"] == "table_side"]
     for sensor in sensors:
         sensor["include_in_obs"] = True
+        sensor["sensor_kwargs"].pop("viewport_name", None)
         # Collection only renders GUI viewports; playback needs sensor RGB data.
         sensor["modalities"] = ["rgb"]
     env = None

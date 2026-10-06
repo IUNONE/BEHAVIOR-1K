@@ -147,21 +147,8 @@ def configure_robot_physics(env):
     og.sim.play()
     og.sim.update_handles()
     robot = env.robots[0]
-    reset_positions = robot.reset_joint_pos.clone()
-    arm_angles = {
-        "left": [0.0, 60.0, 0.0, -90.0, 60.0, 45.0, -45.0],
-        "right": [0.0, -60.0, 0.0, -90.0, -60.0, 45.0, 45.0],
-    }
-    for arm, angles in arm_angles.items():
-        for number, angle in enumerate(angles, start=1):
-            name = f"{arm}_arm_joint{number}"
-            reset_positions[robot.joints[name].dof_indices] = angle * th.pi / 180.0
-    robot.reset_joint_pos = reset_positions
+    configure_robot_reset_pose(robot)
     robot.reset()
-    for arm in arm_angles:
-        indices = [robot.joints[f"{arm}_arm_joint{number}"].dof_indices[0] for number in range(1, 8)]
-        angles = th.rad2deg(robot.get_joint_positions()[indices]).tolist()
-        print(f"ADEPT initial {arm} arm j1-j7: {angles} degrees", flush=True)
     # Collection has no robot VisionSensor instances; the USD cameras still exist
     # for the GUI. Update the camera prim directly, as JoyLo setup_cameras does.
     with og.sim.editing_usd():
@@ -172,6 +159,28 @@ def configure_robot_physics(env):
         head.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
 
 
+def configure_robot_reset_pose(robot):
+    """按实际 DOF 索引设置 ADEPT 姿态, 不假定左右臂在状态向量中连续排列."""
+    reset_positions = th.zeros_like(robot.reset_joint_pos)
+    for number, value in enumerate((1.025, -1.45, -0.47, 0.0), start=1):
+        reset_positions[robot.joints[f"torso_joint{number}"].dof_indices] = value
+    arm_angles = {
+        "left": [0.0, 60.0, 0.0, -90.0, 60.0, 45.0, -45.0],
+        "right": [0.0, -60.0, 0.0, -90.0, -60.0, 45.0, 45.0],
+    }
+    for arm, angles in arm_angles.items():
+        for number, angle in enumerate(angles, start=1):
+            name = f"{arm}_arm_joint{number}"
+            reset_positions[robot.joints[name].dof_indices] = angle * th.pi / 180.0
+        for name in robot.finger_joint_names[arm]:
+            reset_positions[robot.joints[name].dof_indices] = 0.05
+    robot.reset_joint_pos = reset_positions
+    for arm in arm_angles:
+        indices = [robot.joints[f"{arm}_arm_joint{number}"].dof_indices[0] for number in range(1, 8)]
+        angles = th.rad2deg(reset_positions[indices]).tolist()
+        print(f"ADEPT reset {arm} j1-j7: DOFs={indices}, degrees={angles}", flush=True)
+
+
 def load_instance(env, task_name, instance_id, task_dir=None):
     """恢复指定实例并更新后续 reset 使用的场景基线."""
     directory = (task_directory(task_name) if task_dir is None else Path(task_dir)) / "instances" / str(instance_id)
@@ -179,6 +188,7 @@ def load_instance(env, task_name, instance_id, task_dir=None):
     states = recursively_convert_to_torch(read_json(directory / "tro_state.json"))
     robot = env.robots[0]
     env.scene.reset()
+    configure_robot_reset_pose(robot)
     robot.reset()
     for name, state in states.items():
         if name == "robot_poses":

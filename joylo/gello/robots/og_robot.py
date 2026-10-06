@@ -105,6 +105,12 @@ class OGRobotServer:
 
         if self._adept:
             cfg = build_environment_config(task_name, "collection", self.instance_id)
+            # Reuse the official JoyLo camera rig and docking layout. The fixed
+            # table camera is retained for recording, not used as both shoulders.
+            cfg["env"]["external_sensors"][0]["sensor_kwargs"]["viewport_name"] = "Viewport"
+            cfg["env"]["external_sensors"].extend(
+                utils.generate_basic_environment_config(robot, robot_name)["env"]["external_sensors"]
+            )
         elif config is None:
             cfg = utils.generate_basic_environment_config(
                 robot_type=robot,
@@ -337,8 +343,6 @@ class OGRobotServer:
         """配置遥操作相机, 可视化和状态界面."""
         # Setup cameras
         external_sensors = self.env.external_sensors
-        if self._adept:
-            external_sensors = {f"external_sensor{i}": external_sensors["table_side"] for i in range(3)}
         self.camera_paths, self.viewports = utils.setup_cameras(
             self.robot, external_sensors, RESOLUTION, self._teleop_config
         )
