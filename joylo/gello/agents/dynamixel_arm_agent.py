@@ -95,7 +95,7 @@ class DynamixelArmAgent(Agent):
         self._current_enabled = False
 
     def move_to(self, target):
-        """Begin a user-confirmed move; update it from the regular control loop."""
+        """Begin a move authorized by the selected mode; update it from the control loop."""
         target = np.asarray(target, dtype=float)
         current = self.get_joint_state()
         if target.shape != current.shape or not np.isfinite([target, current]).all():
@@ -131,7 +131,8 @@ class DynamixelArmAgent(Agent):
         self._settled_since = (self._settled_since or now) if reached else None
         if reached and now - self._settled_since >= 0.3:
             self._motion_target = None
-            print("At target; holding. Support both arms, then press X to release and follow, or type stop.")
+            print("At target; holding. Support both arms, then press X to release and follow.")
+            return True
 
     def close(self):
         try:

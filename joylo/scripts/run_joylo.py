@@ -1,6 +1,4 @@
 import glob
-import select
-import sys
 import yaml
 from dataclasses import dataclass
 from typing import Optional, Tuple, Literal
@@ -47,6 +45,8 @@ class Args:
     """Use Joy-Cons with the simulator without opening a motor serial port."""
     no_enable_joylo_torque: bool = False
     """Disable motor torque and only read angles; no reset, locking, or force feedback."""
+    motor_confirm: bool = False
+    """Use left Joy-Con right/left arrows to confirm/cancel motor moves instead of lights."""
 
 
 def make_agent(args, bimanual_config, joycon_agent):
@@ -117,6 +117,7 @@ def make_agent(args, bimanual_config, joycon_agent):
         arm_agent=arm_agent,
         joycon_agent=joycon_agent,
         motor_feedback_type=MotorFeedbackConfig[args.motor_feedback_type],
+        motor_confirm=args.motor_confirm,
     )
 
 
@@ -124,6 +125,8 @@ def main(args):
     if args.only_joycon and args.no_enable_joylo_torque:
         raise ValueError("--only_joycon and --no_enable_joylo_torque are mutually exclusive")
     passive = args.only_joycon or args.no_enable_joylo_torque
+    if args.motor_confirm and (passive or not args.use_joycons):
+        raise ValueError("--motor_confirm requires active JoyLo mode and connected Joy-Cons")
     if args.only_joycon and not args.use_joycons:
         raise ValueError("--only_joycon requires Joy-Cons")
     if passive and (args.mock or args.start_joints is not None or args.motor_feedback_type != "NONE"):
@@ -156,8 +159,10 @@ def main(args):
     if passive:
         print("Joy-Con only; motors disconnected." if args.only_joycon else "Torque OFF; reading JoyLo angles only.")
         print("No motor resets, locks or force feedback. Press X to resume simulation.")
+    elif args.motor_confirm:
+        print("Motor confirmation: left Joy-Con RIGHT confirms, LEFT cancels/releases. Lights are disabled.")
     else:
-        print("Torque OFF. While sim is paused: type zero or align, then confirm. cancel/stop releases torque.")
+        print("Automatic motor motion: return to start position, then align to simulation.")
 
     print_color("*" * 40, color="magenta", attrs=("bold",))
     print_color(
@@ -187,7 +192,8 @@ def main(args):
         attrs=("bold",),
     )
     print_color(
-        "\t Left / Right Button: Toggle gripper light",
+        "\t Left / Right Button: Cancel / confirm motor motion" if args.motor_confirm
+        else "\t Left / Right Button: Toggle gripper light",
         color="magenta",
         attrs=("bold",),
     )
@@ -205,10 +211,14 @@ def main(args):
         )
     if not passive:
         print_color(
-            "\t - / +: Lock the upper joints while leaving the lower wrist roll joint free.\n\t\tThe wrist pose will NOT be tracked while held.",
+            "\t - / +: Toggle left / right whole-arm position hold"
+            if args.gello_model == "r1pro" else
+            "\t - / +: Toggle arm lock request",
             color="magenta",
             attrs=("bold",),
         )
+        if args.motor_confirm:
+            print_color("\t L / R and - / + request locks; RIGHT arrow confirms them.", color="magenta")
     print_color(
         "\t Y: Move the robot towards its reset pose", color="magenta", attrs=("bold",)
     )
@@ -222,10 +232,6 @@ def main(args):
         print_color("\nStart 🚀🚀🚀", color="green", attrs=("bold",))
         while True:
             action = agent.act(obs)
-            if not passive and sys.stdin.isatty() and select.select([sys.stdin], [], [], 0)[0]:
-                command = sys.stdin.readline().strip().lower()
-                if command:
-                    agent.position_command(command, obs)
             obs = env.step(action)
     finally:
         agent.close()

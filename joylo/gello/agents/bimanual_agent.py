@@ -105,6 +105,7 @@ class BimanualAgent(Agent):
         arm_agent: DynamixelArmAgent,
         joycon_agent: Optional[JoyconAgent] = None,
         motor_feedback_type: MotorFeedbackConfig = MotorFeedbackConfig.OPERATIONAL_SPACE,
+        motor_confirm: bool = False,
     ):
         super().__init__()
         self.config = config
@@ -117,6 +118,12 @@ class BimanualAgent(Agent):
         self._alignment_target = None
         self._locks_armed = False
         self._last_sim_reset = None
+        self._motor_confirm = motor_confirm
+        self._needs_zero = True
+        self._move_stage = None
+        self._previous_arrows = None
+        self._confirm_pressed = False
+        self._lock_request = None
 
         mpa = config.motors_per_arm
         self._arm_info = {}
@@ -182,6 +189,8 @@ class BimanualAgent(Agent):
         self._pending_move = None
         self._alignment_target = None
         self._locks_armed = False
+        self._move_stage = None
+        self._lock_request = None
 
         for arm in ("left", "right"):
             info = self._arm_info[arm]
@@ -191,34 +200,14 @@ class BimanualAgent(Agent):
 
         self._arm.reset()
 
-    def position_command(self, command, obs):
-        """Terminal commands are handled on the control thread, never in a motor thread."""
-        if command in ("stop", "cancel"):
-            self.reset()
-            print("Request cancelled; torque OFF. Release lock buttons before resuming.")
-            return
-        if not obs["waiting_to_resume"]:
-            print("Pause the simulation with P before requesting a position move.")
-            return
-        if command in ("zero", "align"):
-            self.reset()
-            target = np.zeros(self.config.motors_per_arm * 2) if command == "zero" else self._obs_to_gello(obs)
-            self._pending_move = (command, target.copy())
-            print(f"{command} target J1-J{self.config.joints_per_arm} (left, right), degrees:")
-            print(np.round(np.rad2deg(self._gello_to_obs(target)), 1).reshape(2, -1))
-            delta = np.max(np.abs(target - self._arm.get_joint_state()))
-            print(f"Largest motor change: {np.rad2deg(delta):.1f} deg. Check clearance; type confirm or cancel.")
-        elif command == "confirm" and self._pending_move is not None:
-            kind, target = self._pending_move
-            self._pending_move = None
-            if kind == "align" and not np.allclose(target, self._obs_to_gello(obs), atol=np.deg2rad(2), rtol=0):
-                print("Simulation pose changed; request align again.")
-                return
-            self._arm.move_to(target)
-            self._alignment_target = target.copy() if kind == "align" else None
-            print("Moving at at most 10 deg/s target progression; type stop to release torque.")
-        else:
-            print("Commands: zero, align, confirm, cancel, stop. Each move requires a new confirmation.")
+    def _request_move(self, kind, obs):
+        self.reset()
+        target = self.config.start_joints.copy() if kind == "zero" else self._obs_to_gello(obs)
+        self._pending_move = (kind, target.copy())
+        print(f"{kind} target (left, right), degrees:")
+        print(np.round(np.rad2deg(self._gello_to_obs(target)), 1).reshape(2, -1))
+        if self._motor_confirm:
+            print("Torque OFF. Left Joy-Con RIGHT: confirm; LEFT: cancel/release. Release and press again for each move.")
 
     def close(self):
         self._arm.close()
@@ -226,32 +215,68 @@ class BimanualAgent(Agent):
     def act(self, obs: Dict) -> th.Tensor:
         gello_jnts = self._obs_to_gello(obs)
         target_jnts = gello_jnts.copy()
+        jc_input = self._joycon.act(obs) if self._joycon is not None else None
+        cancel = False
+        self._confirm_pressed = False
+        if self._motor_confirm:
+            arrows = (bool(jc_input[15]), bool(jc_input[16]))
+            if self._previous_arrows is not None:
+                cancel = arrows[0]  # Cancel wins if both arrows are held.
+                self._confirm_pressed = arrows[1] and not self._previous_arrows[1] and not cancel
+            self._previous_arrows = arrows
+            jc_input[15:17] = 0  # Do not also toggle the simulator lights.
         reset_count = obs.get("reset_count")
+        reset_changed = reset_count != self._last_sim_reset
         if reset_count != self._last_sim_reset:
             self.reset()
             self._last_sim_reset = reset_count
 
         # Handle wait-to-resume
-        if obs["waiting_to_resume"] and not self._waiting_to_resume:
-            self.reset()
-            print("Simulation paused; torque OFF. Type zero/align then confirm, or X to follow without alignment.")
+        if obs["waiting_to_resume"] and (not self._waiting_to_resume or reset_changed):
+            self._request_move("zero" if self._needs_zero else "align", obs)
             self._waiting_to_resume = True
+            self._confirm_pressed = False  # Do not authorize a newly displayed request with an old press.
         elif not obs["waiting_to_resume"] and self._waiting_to_resume:
             self.start()
             self._waiting_to_resume = False
 
         if self._pending_move is not None and self._pending_move[0] == "align":
             if not np.allclose(self._pending_move[1], gello_jnts, atol=np.deg2rad(2), rtol=0):
-                self._pending_move = None
-                print("Alignment request cancelled: simulation pose changed.")
+                self._request_move("align", obs)
+                self._confirm_pressed = False
         if self._alignment_target is not None and not np.allclose(
             self._alignment_target, gello_jnts, atol=np.deg2rad(2), rtol=0
         ):
             self.reset()
             print("Alignment stopped: simulation pose changed; torque OFF.")
-        self._arm.update_motion()
+        if jc_input is not None and (jc_input[13] or jc_input[14]):
+            cancel = True
+        if cancel:
+            self.reset()
+        elif self._waiting_to_resume:
+            if self._pending_move is None and self._move_stage is None and self._confirm_pressed:
+                # After cancellation, the first press requests a new alignment;
+                # a second press is required to execute it.
+                self._request_move("zero" if self._needs_zero else "align", obs)
+                self._confirm_pressed = False
+            if self._pending_move is not None and (not self._motor_confirm or self._confirm_pressed):
+                kind, target = self._pending_move
+                self._pending_move = None
+                self._arm.move_to(target)
+                self._move_stage = kind
+                self._alignment_target = target.copy() if kind == "align" else None
+            finished = self._arm.update_motion()
+            if finished and self._move_stage == "zero":
+                self._needs_zero = False
+                self._request_move("align", obs)
+            elif self._move_stage is not None and not self._arm.moving and not finished:
+                # A failed move must never advance automatically to the next one.
+                if self._move_stage != "holding":
+                    self._move_stage = None
+            elif finished:
+                self._move_stage = "holding"
 
-        if not self._waiting_to_resume:
+        if not self._waiting_to_resume and not cancel:
             self._apply_impedance_feedback(gello_jnts, target_jnts, obs)
             if self._enable_locking:
                 self._handle_joint_locking(obs, gello_jnts)
@@ -261,10 +286,7 @@ class BimanualAgent(Agent):
         action = th.from_numpy(self._gello_to_obs(raw_jnts).astype(np.float32))
         # append joycon input if applicable
         if self._joycon is not None:
-            jc_input = self._joycon.act(obs)
-            if jc_input[13] or jc_input[14]:  # Capture / Home cancel physical motion before sim exit/reset.
-                self.reset()
-            if self._arm.moving:
+            if self._arm.moving or self._pending_move is not None:
                 jc_input[9] = 0  # X may resume only after the move completes.
             action = th.cat([action, jc_input], dim=0)
         return action
@@ -291,6 +313,20 @@ class BimanualAgent(Agent):
                 or self._joycon.gripper_info["+"]["status"] == -1
             )
             return
+        if self._motor_confirm:
+            requests = tuple(
+                (side, kind)
+                for side, all_pressed, wrist_pressed in (
+                    ("left", self._joycon.gripper_info["-"]["status"] == -1, self._joycon.jc_left.get_button_l()),
+                    ("right", self._joycon.gripper_info["+"]["status"] == -1, self._joycon.jc_right.get_button_r()),
+                )
+                for kind, pressed in (("all", all_pressed), ("lower", wrist_pressed))
+                if pressed and not self._arm_info[side]["locked"][kind]
+            )
+            if requests and requests != self._lock_request:
+                print(f"Hold-current-position request: {requests}. Left Joy-Con RIGHT confirms, LEFT cancels.")
+                self._confirm_pressed = False
+            self._lock_request = requests
         robot = self._arm.robot
         mpa = self.config.motors_per_arm
         total = mpa * 2
@@ -364,7 +400,7 @@ class BimanualAgent(Agent):
         is_locked = arm_info["locked"]["all"]
         lock_mode = arm_info["lock_config"].all_lock_mode
 
-        if lock_all and not is_locked:
+        if lock_all and not is_locked and (not self._motor_confirm or self._confirm_pressed):
             operating_modes[arm_info["gello_ids"]] = lock_mode
             active_mode_idxs = np.concatenate([active_mode_idxs, arm_info["gello_ids"]])
             active_cmd_idxs = np.concatenate([active_cmd_idxs, arm_info["gello_ids"]])
@@ -386,7 +422,7 @@ class BimanualAgent(Agent):
         lock_cfg = arm_info["lock_config"]
         n = lock_cfg.lower_lock_count
 
-        if lock_lower and not is_locked:
+        if lock_lower and not is_locked and (not self._motor_confirm or self._confirm_pressed):
             n_motors = len(arm_info["gello_ids"])
             modes = [OperatingMode.NONE] * (n_motors - n) + [
                 OperatingMode.EXTENDED_POSITION
