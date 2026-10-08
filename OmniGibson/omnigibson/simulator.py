@@ -169,10 +169,11 @@ def _ignore_missing_property_frame():
     if original is None or getattr(original, "_og_headless_guard", False):
         return
 
-    def save_scroll_pos(self):
+    def save_scroll_pos(self, *args, **kwargs):
+        # Kit calls save_scroll_pos(reset=True) while closing a headless stage.
         if getattr(self, "properties_frame", None) is None:
             return None
-        return original(self)
+        return original(self, *args, **kwargs)
 
     save_scroll_pos._og_headless_guard = True
     PropertyWindow.save_scroll_pos = save_scroll_pos

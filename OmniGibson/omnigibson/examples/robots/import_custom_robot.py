@@ -464,11 +464,11 @@ def add_sensor(stage, root_prim, sensor_type, link_name, parent_link_name=None, 
     if sensor_type == "Camera":
         sensor_prim.GetAttribute("focalLength").Set(17.0)
         sensor_prim.GetAttribute("clippingRange").Set(lazy.pxr.Gf.Vec2f(0.001, 1000000.0))
-        # Refresh visibility. Headless has no viewport, and render() starts GLFW and the property panel.
-        lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeInvisible()
+        # Headless has no viewport. Toggling visibility still selects the prim and starts GLFW.
         if not gm.HEADLESS:
+            lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeInvisible()
             og.sim.render()
-        lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeVisible()
+            lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeVisible()
 
     # If we didn't have a parent prim defined, we need to add the offset directly to this sensor
     if parent_link_prim is None:
