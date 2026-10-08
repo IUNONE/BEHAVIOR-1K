@@ -31,7 +31,7 @@ def run(args):
         raise ValueError("check_env steps must be positive.")
     failed = False
     env_config = build_environment_config(
-        args.task_name, instance_id=args.instance_indices[0], max_steps=check_steps,
+        args.task_name, instance_id=args.instance_indices[0], max_steps=check_steps, robot=args.robot,
     )
     tile_size = (640, 480)
     if args.camera_resolution is not None:

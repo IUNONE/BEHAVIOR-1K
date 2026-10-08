@@ -48,8 +48,8 @@ class OGRobotServer:
         """创建任务环境, 实例和遥操作记录接口."""
         self._adept = task_name in ADEPT_TASK_NAMES
         if self._adept:
-            if robot != "r1pro" or robot_name != "robot" or config is not None:
-                raise ValueError("ADEPT uses the shared r1pro configuration and robot name 'robot'.")
+            if robot not in {"r1pro", "r1pro_wuji"} or robot_name != "robot" or config is not None:
+                raise ValueError("ADEPT robot must be r1pro or r1pro_wuji, and the robot name must be 'robot'.")
             self.task_name = task_name
             self.instance_id = 1 if instance_id is None else instance_id
             adept_config = load_task_config(task_name)
@@ -104,7 +104,7 @@ class OGRobotServer:
         self._robot_type = robot
 
         if self._adept:
-            cfg = build_environment_config(task_name, "collection", self.instance_id)
+            cfg = build_environment_config(task_name, "collection", self.instance_id, robot=robot)
             # Reuse the official JoyLo camera rig and docking layout. The fixed
             # table camera is retained for recording, not used as both shoulders.
             cfg["env"]["external_sensors"][0]["sensor_kwargs"]["viewport_name"] = "Viewport"

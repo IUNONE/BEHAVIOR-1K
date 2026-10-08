@@ -95,7 +95,9 @@ def run(args):
     videos, success_steps = {}, {}
     policy = None
     try:
-        env = og.Environment(configs=build_environment_config(args.task_name, "evaluation", args.instance_indices[0], max_steps))
+        env = og.Environment(configs=build_environment_config(
+            args.task_name, "evaluation", args.instance_indices[0], max_steps, robot=args.robot,
+        ))
         configure_robot_physics(env)
         control_hz = env.env_config["action_frequency"]
         if args.write_video and args.video_fps != control_hz:

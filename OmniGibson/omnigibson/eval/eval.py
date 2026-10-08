@@ -25,6 +25,7 @@ from pathlib import Path
 from omegaconf import OmegaConf
 
 from omnigibson.adept import TASK_NAMES as ADEPT_TASK_NAMES
+from omnigibson.adept.r1pro_wuji import DEFAULT_ROBOT, ROBOT_MODELS
 from omnigibson.macros import gm
 from omnigibson.utils.ui_utils import create_module_logger
 
@@ -53,6 +54,12 @@ def parse_args() -> argparse.Namespace:
             "Policy server port. The built-in websocket policy uses 8000 when omitted. "
             "The OpenWAM adapter uses policy_config.yml when omitted."
         ),
+    )
+    parser.add_argument(
+        "--robot",
+        choices=ROBOT_MODELS,
+        default=None,
+        help="ADEPT embodiment. Defaults to r1pro_wuji. Not used for challenge tasks.",
     )
     parser.add_argument(
         "--robot-config",
@@ -169,7 +176,12 @@ def main() -> None:
         if args.env_wrapper != "omnigibson.eval.wrappers.DefaultWrapper":
             raise ValueError("ADEPT uses the shared JoyLo camera configuration without challenge wrappers.")
         if args.robot_config is not None:
-            raise ValueError("ADEPT uses its shared R1Pro configuration; edit adept/configs/common.yaml.")
+            raise ValueError("ADEPT uses the shared JoyLo camera configuration; select --robot r1pro or r1pro_wuji.")
+        if args.robot is None:
+            args.robot = DEFAULT_ROBOT
+    elif args.robot is not None:
+        raise ValueError("--robot is only supported for ADEPT tasks.")
+    if args.task_name in ADEPT_TASK_NAMES:
         if args.mode == "check_env":
             from omnigibson.adept.check_env import run
         elif args.mode == "train":

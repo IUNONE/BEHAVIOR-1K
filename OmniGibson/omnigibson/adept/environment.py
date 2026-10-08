@@ -9,7 +9,7 @@ import omnigibson as og
 import omnigibson.lazy as lazy
 import omnigibson.utils.transform_utils as T
 from omnigibson.adept import TASK_NAMES
-from omnigibson.adept.r1pro_wuji import open_positions, use_wuji_hand
+from omnigibson.adept.r1pro_wuji import DEFAULT_ROBOT, apply_robot_model, open_positions
 from omnigibson.adept.scene import ADEPTScene
 from omnigibson.macros import gm
 from omnigibson.utils.config_utils import TorchEncoder
@@ -68,8 +68,8 @@ def camera_config(config):
     }
 
 
-def robot_config(config, purpose):
-    """构造 ADEPT 的 r1pro_wuji 控制器及相机配置."""
+def robot_config(config, purpose, robot_model=DEFAULT_ROBOT):
+    """构造 ADEPT 机器人配置. robot_model 为 r1pro 或 r1pro_wuji."""
     path = Path(__file__).parents[1] / "eval" / "r1pro.yaml"
     with path.open() as stream:
         robot = yaml.safe_load(stream)
@@ -84,11 +84,14 @@ def robot_config(config, purpose):
         "sensor_kwargs": {"image_height": 480, "image_width": 480},
     } for link in ("zed_link", "left_realsense_link", "right_realsense_link")}
     robot["sensor_config"]["zed_link:Camera:0"]["sensor_kwargs"]["horizontal_aperture"] = 40.0
-    # 在叠上 common.yaml 之后再切换, 这样 28 维 reset_joint_pos 会被丢掉.
-    return use_wuji_hand(robot)
+    # r1pro_wuji 必须在叠上 common.yaml 之后切换, 才能丢掉 28 维 reset_joint_pos.
+    print(f"ADEPT robot: {robot_model}", flush=True)
+    return apply_robot_model(robot, robot_model)
 
 
-def build_environment_config(task_name, purpose="check_env", instance_id=1, max_steps=None, task_dir=None):
+def build_environment_config(
+    task_name, purpose="check_env", instance_id=1, max_steps=None, task_dir=None, robot=DEFAULT_ROBOT,
+):
     """创建使用已保存模板和实例参数的单环境配置."""
     from omnigibson.tasks.adept_task import ADEPTTask
 
@@ -105,7 +108,7 @@ def build_environment_config(task_name, purpose="check_env", instance_id=1, max_
     return {
         "env": {**config["frequencies"], "external_sensors": [sensor]},
         "scene": {"type": ADEPTScene.__name__, "scene_file": str(scene_path), "include_robots": False, "use_floor_plane": False},
-        "robots": [robot_config(config, purpose)],
+        "robots": [robot_config(config, purpose, robot)],
         "task": {
             "type": ADEPTTask.__name__,
             "activity_name": task_name,

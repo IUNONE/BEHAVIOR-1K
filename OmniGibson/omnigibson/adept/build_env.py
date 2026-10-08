@@ -20,6 +20,7 @@ from omnigibson.adept.environment import (
     build_environment_config, camera_config, configure_robot_physics, initial_report,
     load_instance, load_task_config, make_hold_action, robot_config, task_directory, write_json,
 )
+from omnigibson.adept.r1pro_wuji import DEFAULT_ROBOT, ROBOT_MODELS
 from omnigibson.adept.scene import ADEPTScene
 from omnigibson.macros import gm
 from omnigibson.utils.bddl_utils import evaluate_bddl_predicate, get_knowledge_base
@@ -145,7 +146,7 @@ def validate_candidate(env, objects, table, config, compiled, predicate, robot_p
     return None
 
 
-def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
+def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50, robot=DEFAULT_ROBOT):
     """自动采样, 构建和验证全部实例后保存共用模板与原生状态."""
     config = load_task_config(task_name)
     directory = task_directory(task_name)
@@ -167,7 +168,7 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
     cfg = {
         "env": {**config["frequencies"], "external_sensors": [camera_config(config)]},
         "scene": {"type": ADEPTScene.__name__, "use_floor_plane": False},
-        "robots": [robot_config(config, "collection")],
+        "robots": [robot_config(config, "collection", robot)],
         "objects": deepcopy(config["room_objects"] + [config["table"]] + config["objects"]),
         "task": {"type": "DummyTask", "include_obs": False},
     }
@@ -264,7 +265,9 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50):
                 raise RuntimeError(f"Instance {instance_id} failed after {max_attempts} attempts: {dict(failures)}")
         print("build_env: reloading saved scene for validation", flush=True)
         og.clear()
-        env = og.Environment(configs=build_environment_config(task_name, "collection", instance_ids[0], task_dir=staging))
+        env = og.Environment(configs=build_environment_config(
+            task_name, "collection", instance_ids[0], task_dir=staging, robot=robot,
+        ))
         configure_robot_physics(env)
         for instance_id in instance_ids:
             print(f"build_env: validating saved instance {instance_id}", flush=True)
@@ -286,6 +289,7 @@ def main():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-attempts", type=int, default=50)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--robot", choices=ROBOT_MODELS, default=DEFAULT_ROBOT)
     parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
     if args.num_instances is not None and args.num_instances < 1:
@@ -295,7 +299,7 @@ def main():
     gm.ENABLE_TRANSITION_RULES = False
     gm.USE_GPU_DYNAMICS = False
     try:
-        build(args.task_name, instance_ids, args.overwrite, args.seed, args.max_attempts)
+        build(args.task_name, instance_ids, args.overwrite, args.seed, args.max_attempts, args.robot)
     except Exception:
         print("build_env failed before completion:", file=sys.stderr, flush=True)
         traceback.print_exc()

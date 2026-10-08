@@ -21,6 +21,8 @@ import yaml
 
 
 MODEL = "r1pro_wuji"
+ROBOT_MODELS = ("r1pro", MODEL)
+DEFAULT_ROBOT = MODEL
 ASSET_DIR = Path(__file__).resolve().parent / "custom_assets" / MODEL
 R1_URDF = Path(__file__).resolve().parents[3] / "joylo" / "assets" / "robot" / "r1_pro_a2_2026" / "r1_pro_a2_2026.urdf"
 R1_MESH_LINK = Path("../../../../../../joylo/assets/robot/r1_pro_a2_2026/meshes")
@@ -817,6 +819,15 @@ def use_wuji_hand(robot):
         gripper["mode"] = "binary"
         gripper["open_qpos"] = [float(value) for value in poses["open_qpos"][side]]
         gripper["closed_qpos"] = [float(value) for value in poses["closed_qpos"][side]]
+    return robot
+
+
+def apply_robot_model(robot, model=DEFAULT_ROBOT):
+    """Keep the official R1Pro config, or switch it to the Wuji hand."""
+    if model not in ROBOT_MODELS:
+        raise ValueError(f"robot must be one of {', '.join(ROBOT_MODELS)}, got {model}.")
+    if model == MODEL:
+        return use_wuji_hand(robot)
     return robot
 
 
