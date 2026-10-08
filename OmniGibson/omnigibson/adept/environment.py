@@ -164,6 +164,14 @@ def configure_robot_physics(env):
         translate = (0.0, 0.0, 0.0) if robot.model == "r1pro_wuji" else (0.06, 0.0, 0.01)
         head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(*translate))
         head.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
+        if robot.model == "r1pro_wuji":
+            # D405 mesh surrounds the link origin. Look along the link +Z, just outside the housing.
+            for link_name in ("left_realsense_link", "right_realsense_link"):
+                wrist = lazy.isaacsim.core.utils.prims.get_prim_at_path(
+                    prim_path=f"{robot.links[link_name].prim_path}/Camera"
+                )
+                wrist.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.0, 0.0, 0.04))
+                wrist.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
 
 
 def configure_robot_reset_pose(robot):

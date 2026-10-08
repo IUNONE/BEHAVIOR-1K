@@ -257,7 +257,7 @@ def _download_hand(commit, side):
 
 
 def _retarget_cameras(root, side):
-    """删掉夹爪, 把 d405 和 gmsl 按原相对姿态装到手上的 mount."""
+    """保留夹爪外壳作为法兰外观, 删掉手指, 把相机装到手上的 mount."""
     prefix = SIDE_PREFIX[side]
     mount_link = f"{prefix}_mount"
     gripper = _find_named(root, "joint", f"{side}_gripper_joint")
@@ -284,13 +284,16 @@ def _retarget_cameras(root, side):
     _remove_named(
         root,
         "joint",
-        {f"{side}_gripper_joint", f"{side}_gripper_finger_joint1", f"{side}_gripper_finger_joint2"},
+        {f"{side}_gripper_finger_joint1", f"{side}_gripper_finger_joint2"},
     )
     _remove_named(
         root,
         "link",
-        {f"{side}_gripper_link", f"{side}_gripper_finger_link1", f"{side}_gripper_finger_link2"},
+        {f"{side}_gripper_finger_link1", f"{side}_gripper_finger_link2"},
     )
+    housing = _find_named(root, "link", f"{side}_gripper_link")
+    for collision in list(housing.findall("collision")):
+        housing.remove(collision)
     d405_xyz, d405_rpy = _origin(_find_named(root, "joint", f"{side}_d405_joint"))
     realsense = f"{side}_realsense_link"
     _insert_after(
@@ -443,15 +446,31 @@ def _validate_tree(root, hand_joints, finger_links):
         if parent not in names or child not in names:
             raise ValueError(f"joint {joint.get('name')} parent or child link is missing")
     for dropped in (
-        "left_gripper_link",
-        "right_gripper_link",
         "left_gripper_finger_link1",
         "left_gripper_finger_link2",
         "right_gripper_finger_link1",
         "right_gripper_finger_link2",
     ):
         if dropped in names:
-            raise ValueError(f"gripper link is still in the URDF: {dropped}")
+            raise ValueError(f"gripper finger is still in the URDF: {dropped}")
+    for side in ("left", "right"):
+        parent = f"{side}_arm_base_link"
+        for index in range(1, 8):
+            joint = _find_named(root, "joint", f"{side}_arm_joint{index}")
+            child = f"{side}_arm_link{index}"
+            if joint.get("type") != "revolute":
+                raise ValueError(f"{side}_arm_joint{index} is {joint.get('type')}, expected revolute")
+            if joint.find("parent").get("link") != parent or joint.find("child").get("link") != child:
+                raise ValueError(f"{side}_arm_joint{index} does not continue the arm chain")
+            if joint.find("axis") is None:
+                raise ValueError(f"{side}_arm_joint{index} has no axis")
+            parent = child
+        housing = _find_named(root, "link", f"{side}_gripper_link")
+        if housing.find("collision") is not None:
+            raise ValueError(f"{side}_gripper_link still has collision")
+        gripper_joint = _find_named(root, "joint", f"{side}_gripper_joint")
+        if gripper_joint.find("parent").get("link") != f"{side}_arm_link7":
+            raise ValueError(f"{side}_gripper_joint is not attached to {side}_arm_link7")
     for side, prefix in SIDE_PREFIX.items():
         mount = _find_named(root, "joint", f"{prefix}_mount_joint")
         if mount.find("parent").get("link") != f"{side}_arm_link7":

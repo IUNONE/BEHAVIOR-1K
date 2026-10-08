@@ -1488,6 +1488,27 @@
     <parent link="l_pinky_distal" />
     <child link="l_pinky_tip_sensor_frame" />
   </joint>
+  <link name="left_gripper_link">
+    <inertial>
+      <origin xyz="4.05353121322172E-05 -4.03178431110374E-05 0.0253590092322131" rpy="0 0 0" />
+      <mass value="0.0934809943288547" />
+      <inertia ixx="9.24209557781847E-05" ixy="-8.98061725689484E-07" ixz="8.24766582709023E-08" iyy="5.16704214959303E-05" iyz="-3.17272363110333E-08" izz="0.000122569412854759" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../meshes/r1pro/left_gripper_link.STL" />
+      </geometry>
+      <material name="r1pro_color_1">
+        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="left_gripper_joint" type="fixed">
+    <origin xyz="-0.0295 0.0 -0.1637" rpy="0 0 0" />
+    <parent link="left_arm_link7" />
+    <child link="left_gripper_link" />
+  </joint>
   <link name="left_gmsl_link">
     <inertial>
       <origin xyz="-3.53876339770354E-06 0.00952645301735067 -0.0193719007025304" rpy="0 0 0" />
@@ -2558,6 +2579,27 @@
     <origin xyz="0 0 0" rpy="0 0 0" />
     <parent link="r_pinky_distal" />
     <child link="r_pinky_tip_sensor_frame" />
+  </joint>
+  <link name="right_gripper_link">
+    <inertial>
+      <origin xyz="-2.2589E-07 -5.2175E-08 0.031107" rpy="0 0 0" />
+      <mass value="0.24625" />
+      <inertia ixx="0.00016511" ixy="9.5318E-07" ixz="5.0942E-10" iyy="9.8651E-05" iyz="-1.8604E-10" izz="0.00017588" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../meshes/r1pro/left_gripper_link.STL" />
+      </geometry>
+      <material name="r1pro_color_1">
+        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
+      </material>
+    </visual>
+  </link>
+  <joint name="right_gripper_joint" type="fixed">
+    <origin xyz="-0.0295 0.0 -0.1637" rpy="0 0 0" />
+    <parent link="right_arm_link7" />
+    <child link="right_gripper_link" />
   </joint>
   <link name="right_gmsl_link">
     <inertial>
