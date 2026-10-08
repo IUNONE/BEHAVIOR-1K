@@ -208,6 +208,11 @@ def _massless_link(name):
         "inertia",
         {"ixx": "1e-9", "ixy": "0", "ixz": "0", "iyy": "1e-9", "iyz": "0", "izz": "1e-9"},
     )
+    # A link with no visual still gets a dangling /visuals/<link> reference from the URDF importer.
+    visual = ET.SubElement(link, "visual")
+    ET.SubElement(visual, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
+    geometry = ET.SubElement(visual, "geometry")
+    ET.SubElement(geometry, "box", {"size": "0.001 0.001 0.001"})
     return link
 
 
@@ -335,6 +340,42 @@ def _actuated_joints(root):
         if joint.get("type") in ACTUATED_TYPES and not _is_wheel_joint(name):
             names.append(name)
     return names
+
+
+def _drop_empty_leaf_links(root):
+    """去掉没有惯性、外观和碰撞、也没有子连杆的指尖空坐标系.
+
+    Isaac 仍会给这种连杆写一条 /visuals/<link> 引用, 目标 prim 不存在.
+    """
+    child_names = {joint.find("child").get("link") for joint in root.findall("joint")}
+    parent_names = {joint.find("parent").get("link") for joint in root.findall("joint")}
+    for link in list(root.findall("link")):
+        name = link.get("name")
+        if link.find("inertial") is not None or link.find("visual") is not None or link.find("collision") is not None:
+            continue
+        if name in parent_names or name not in child_names:
+            continue
+        for joint in list(root.findall("joint")):
+            if joint.find("child").get("link") == name:
+                root.remove(joint)
+        root.remove(link)
+
+
+def _remove_zero_fixed_axes(root):
+    """删掉固定关节上的零轴.
+
+    URDF 里 axis 为 0 0 0 时, Isaac 会把关节轴改到 X 并重新旋转子连杆.
+    固定关节不使用轴, 缺省轴是 1 0 0.
+    """
+    for joint in root.findall("joint"):
+        if joint.get("type") != "fixed":
+            continue
+        axis = joint.find("axis")
+        if axis is None:
+            continue
+        values = [float(item) for item in axis.get("xyz", "0 0 0").split()]
+        if all(abs(value) < 1e-8 for value in values):
+            joint.remove(axis)
 
 
 def _link_r1_meshes():
@@ -642,6 +683,8 @@ def compose():
         _fixed_joint("zed_joint", "head_link", "zed_link", zed_xyz),
     ])
 
+    _drop_empty_leaf_links(root)
+    _remove_zero_fixed_axes(root)
     urdf_path = ASSET_DIR / "urdf" / f"{MODEL}.urdf"
     urdf_path.parent.mkdir(parents=True, exist_ok=True)
     ET.indent(root, space="  ")
