@@ -1,0 +1,350 @@
+# Open and closed poses are not RobotDefinition fields; OmegaConf rejects unknown keys.
+source:
+  repo: wuji-technology/wuji-description
+  commit: c2cd7f8d1ef8b6dc8cb907c17daa5a88b4442d95
+  urdf:
+    right: hand2/hand2_beta2/body/urdf/right_with_mount.urdf
+    left: hand2/hand2_beta2/body/urdf/left_with_mount.urdf
+  exclusion_pairs:
+    left: mujoco
+    right: mujoco
+mount_xyz:
+- -0.0295
+- 0.0
+- -0.1637
+mount_rpy:
+- 0.0
+- 0.0
+- 0.0
+mount_note: Palm yaw is not measured. rpy 0 keeps the fingers along the old gripper
+  -z.
+eef_position_in_arm_link7:
+- 0.0
+- 0.0
+- -0.22
+eef_orientation_xyzw:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+zed_link_xyz_in_head_link:
+- 0.064821
+- -0.0001785
+- 0.093658
+joints:
+  left:
+  - l_thumb_cmc_flex
+  - l_thumb_cmc_abd
+  - l_thumb_mcp
+  - l_thumb_ip
+  - l_index_finger_mcp_flex
+  - l_index_finger_mcp_abd
+  - l_index_finger_pip
+  - l_index_finger_dip
+  - l_middle_finger_mcp_flex
+  - l_middle_finger_mcp_abd
+  - l_middle_finger_pip
+  - l_middle_finger_dip
+  - l_ring_finger_mcp_flex
+  - l_ring_finger_mcp_abd
+  - l_ring_finger_pip
+  - l_ring_finger_dip
+  - l_pinky_mcp_flex
+  - l_pinky_mcp_abd
+  - l_pinky_pip
+  - l_pinky_dip
+  right:
+  - r_thumb_cmc_flex
+  - r_thumb_cmc_abd
+  - r_thumb_mcp
+  - r_thumb_ip
+  - r_index_finger_mcp_flex
+  - r_index_finger_mcp_abd
+  - r_index_finger_pip
+  - r_index_finger_dip
+  - r_middle_finger_mcp_flex
+  - r_middle_finger_mcp_abd
+  - r_middle_finger_pip
+  - r_middle_finger_dip
+  - r_ring_finger_mcp_flex
+  - r_ring_finger_mcp_abd
+  - r_ring_finger_pip
+  - r_ring_finger_dip
+  - r_pinky_mcp_flex
+  - r_pinky_mcp_abd
+  - r_pinky_pip
+  - r_pinky_dip
+open_qpos:
+  left:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  right:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+closed_qpos:
+  left:
+  - 1.291
+  - 0.0
+  - 1.57
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  right:
+  - 1.291
+  - 0.0
+  - 1.57
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+  - 1.57
+  - 0.0
+  - 2.094
+  - 1.57
+limits:
+  left:
+    l_thumb_cmc_flex:
+    - -1.187
+    - 1.291
+    l_thumb_cmc_abd:
+    - -1.484
+    - 0.698
+    l_thumb_mcp:
+    - -1.047
+    - 1.57
+    l_thumb_ip:
+    - -1.047
+    - 1.57
+    l_index_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    l_index_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    l_index_finger_pip:
+    - -1.047
+    - 2.094
+    l_index_finger_dip:
+    - -1.047
+    - 1.57
+    l_middle_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    l_middle_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    l_middle_finger_pip:
+    - -1.047
+    - 2.094
+    l_middle_finger_dip:
+    - -1.047
+    - 1.57
+    l_ring_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    l_ring_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    l_ring_finger_pip:
+    - -1.047
+    - 2.094
+    l_ring_finger_dip:
+    - -1.047
+    - 1.57
+    l_pinky_mcp_flex:
+    - -1.047
+    - 1.57
+    l_pinky_mcp_abd:
+    - -0.698
+    - 0.698
+    l_pinky_pip:
+    - -1.047
+    - 2.094
+    l_pinky_dip:
+    - -1.047
+    - 1.57
+  right:
+    r_thumb_cmc_flex:
+    - -1.187
+    - 1.291
+    r_thumb_cmc_abd:
+    - -1.484
+    - 0.698
+    r_thumb_mcp:
+    - -1.047
+    - 1.57
+    r_thumb_ip:
+    - -1.047
+    - 1.57
+    r_index_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    r_index_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    r_index_finger_pip:
+    - -1.047
+    - 2.094
+    r_index_finger_dip:
+    - -1.047
+    - 1.57
+    r_middle_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    r_middle_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    r_middle_finger_pip:
+    - -1.047
+    - 2.094
+    r_middle_finger_dip:
+    - -1.047
+    - 1.57
+    r_ring_finger_mcp_flex:
+    - -1.047
+    - 1.57
+    r_ring_finger_mcp_abd:
+    - -0.698
+    - 0.698
+    r_ring_finger_pip:
+    - -1.047
+    - 2.094
+    r_ring_finger_dip:
+    - -1.047
+    - 1.57
+    r_pinky_mcp_flex:
+    - -1.047
+    - 1.57
+    r_pinky_mcp_abd:
+    - -0.698
+    - 0.698
+    r_pinky_pip:
+    - -1.047
+    - 2.094
+    r_pinky_dip:
+    - -1.047
+    - 1.57
+dof_order:
+- base_footprint_x_joint
+- base_footprint_y_joint
+- base_footprint_z_joint
+- base_footprint_rx_joint
+- base_footprint_ry_joint
+- base_footprint_rz_joint
+- torso_joint1
+- torso_joint2
+- torso_joint3
+- torso_joint4
+- left_arm_joint1
+- left_arm_joint2
+- left_arm_joint3
+- left_arm_joint4
+- left_arm_joint5
+- left_arm_joint6
+- left_arm_joint7
+- l_thumb_cmc_flex
+- l_thumb_cmc_abd
+- l_thumb_mcp
+- l_thumb_ip
+- l_index_finger_mcp_flex
+- l_index_finger_mcp_abd
+- l_index_finger_pip
+- l_index_finger_dip
+- l_middle_finger_mcp_flex
+- l_middle_finger_mcp_abd
+- l_middle_finger_pip
+- l_middle_finger_dip
+- l_ring_finger_mcp_flex
+- l_ring_finger_mcp_abd
+- l_ring_finger_pip
+- l_ring_finger_dip
+- l_pinky_mcp_flex
+- l_pinky_mcp_abd
+- l_pinky_pip
+- l_pinky_dip
+- right_arm_joint1
+- right_arm_joint2
+- right_arm_joint3
+- right_arm_joint4
+- right_arm_joint5
+- right_arm_joint6
+- right_arm_joint7
+- r_thumb_cmc_flex
+- r_thumb_cmc_abd
+- r_thumb_mcp
+- r_thumb_ip
+- r_index_finger_mcp_flex
+- r_index_finger_mcp_abd
+- r_index_finger_pip
+- r_index_finger_dip
+- r_middle_finger_mcp_flex
+- r_middle_finger_mcp_abd
+- r_middle_finger_pip
+- r_middle_finger_dip
+- r_ring_finger_mcp_flex
+- r_ring_finger_mcp_abd
+- r_ring_finger_pip
+- r_ring_finger_dip
+- r_pinky_mcp_flex
+- r_pinky_mcp_abd
+- r_pinky_pip
+- r_pinky_dip

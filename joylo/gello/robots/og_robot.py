@@ -282,7 +282,7 @@ class OGRobotServer:
                 if obj.category in VISUAL_ONLY_CATEGORIES:
                     obj.visual_only = True
             else:
-                if isinstance(obj, Robot) and obj.model in ("r1", "r1pro"):
+                if isinstance(obj, Robot) and obj.model in ("r1", "r1pro", "r1pro_wuji"):
                     obj.base_footprint_link.mass = 250.0
 
         # Update ghost robot's masses to be uniform to avoid orthonormal errors

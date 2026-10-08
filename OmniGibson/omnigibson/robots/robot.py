@@ -102,6 +102,21 @@ _AG_MAGIC = 1e8 + 123456
 _AG_STATE_SIZE = 17
 
 
+def _custom_robot_definition(model):
+    """Return the ADEPT custom-asset definition when ``custom_assets/<model>/<model>.yaml`` exists.
+
+    The lookup is path-based so importing ``robots`` does not import ``adept``.
+    """
+    definition = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "adept",
+        "custom_assets",
+        model,
+        model + ".yaml",
+    )
+    return definition if os.path.isfile(definition) else None
+
+
 class Robot(USDObject, GymObservable):
     def __init__(
         self,
@@ -212,10 +227,16 @@ class Robot(USDObject, GymObservable):
                 for flexible compositions of various object subclasses (e.g.: Robot is USDObject).
         """
         self.model = model
-        # Read and validate robot definition YAML file using OmegaConf
-        definition_path = os.path.join(
-            get_dataset_path("omnigibson-robot-assets"), "models", self.model, self.model + ".yaml"
-        )
+        # Read and validate robot definition YAML file using OmegaConf.
+        # ADEPT custom models live next to their yaml; every other model stays in the robot dataset.
+        custom_definition = _custom_robot_definition(self.model)
+        self._asset_root = os.path.dirname(custom_definition) if custom_definition else None
+        if custom_definition is None:
+            definition_path = os.path.join(
+                get_dataset_path("omnigibson-robot-assets"), "models", self.model, self.model + ".yaml"
+            )
+        else:
+            definition_path = custom_definition
         yaml_definition = OmegaConf.load(definition_path)
         schema = OmegaConf.structured(RobotDefinition)
         merged_definition = OmegaConf.merge(schema, yaml_definition)
@@ -2257,20 +2278,31 @@ class Robot(USDObject, GymObservable):
             obs_keys += ["camera_qpos_sin", "camera_qpos_cos"]
         return obs_keys
 
+    def _resolve_robot_asset(self, relative_path):
+        """Resolve a definition-relative asset path.
+
+        Custom ADEPT models resolve against the directory that contains their definition yaml.
+        Dataset models keep resolving against ``omnigibson-robot-assets``.
+        """
+        if os.path.isabs(relative_path):
+            return relative_path
+        root = self._asset_root or get_dataset_path("omnigibson-robot-assets")
+        return os.path.join(root, relative_path)
+
     @property
     def usd_path(self):
         # Check top-level usd_path
         if self._definition.usd_path:
-            return os.path.join(get_dataset_path("omnigibson-robot-assets"), self._definition.usd_path)
+            return self._resolve_robot_asset(self._definition.usd_path)
         # Check end-effector specific usd_path
         if self.has_end_effector_variants:
             eef_def = self._get_end_effector_definition()
             if eef_def and eef_def.usd_path:
-                return os.path.join(get_dataset_path("omnigibson-robot-assets"), eef_def.usd_path)
+                return self._resolve_robot_asset(eef_def.usd_path)
 
         # By default, sets the standardized path
         model = self.model.lower()
-        return os.path.join(get_dataset_path("omnigibson-robot-assets"), f"models/{model}/usd/{model}.usda")
+        return self._resolve_robot_asset(f"models/{model}/usd/{model}.usda")
 
     @property
     def urdf_path(self):
@@ -2280,18 +2312,18 @@ class Robot(USDObject, GymObservable):
         """
         # Check top-level urdf_path
         if self._definition.urdf_path:
-            return os.path.join(get_dataset_path("omnigibson-robot-assets"), self._definition.urdf_path)
+            return self._resolve_robot_asset(self._definition.urdf_path)
         # Check end-effector specific urdf_path
         if self.has_end_effector_variants:
             eef_def = self._get_end_effector_definition()
             if eef_def:
                 assert not eef_def.not_support_urdf, "Robot doesn't support URDF."
                 if eef_def.urdf_path:
-                    return os.path.join(get_dataset_path("omnigibson-robot-assets"), eef_def.urdf_path)
+                    return self._resolve_robot_asset(eef_def.urdf_path)
 
         # By default, sets the standardized path
         model = self.model.lower()
-        return os.path.join(get_dataset_path("omnigibson-robot-assets"), f"models/{model}/urdf/{model}.urdf")
+        return self._resolve_robot_asset(f"models/{model}/urdf/{model}.urdf")
 
     @property
     def base_footprint_link_name(self):
@@ -3294,12 +3326,12 @@ class Robot(USDObject, GymObservable):
         """
         # Check top-level curobo_path
         if self._definition.curobo_path:
-            return os.path.join(get_dataset_path("omnigibson-robot-assets"), self._definition.curobo_path)
+            return self._resolve_robot_asset(self._definition.curobo_path)
         # Check end-effector specific curobo_path
         if self.has_end_effector_variants:
             eef_def = self._get_end_effector_definition()
             if eef_def and eef_def.curobo_path:
-                return os.path.join(get_dataset_path("omnigibson-robot-assets"), eef_def.curobo_path)
+                return self._resolve_robot_asset(eef_def.curobo_path)
             else:
                 assert False, "Robot not supported for curobo."
 
@@ -3309,9 +3341,8 @@ class Robot(USDObject, GymObservable):
         # By default, sets the standardized path
         model = self.model.lower()
         return {
-            emb_sel: os.path.join(
-                get_dataset_path("omnigibson-robot-assets"),
-                f"models/{model}/curobo/{model}_description_curobo_{emb_sel.value}.yaml",
+            emb_sel: self._resolve_robot_asset(
+                f"models/{model}/curobo/{model}_description_curobo_{emb_sel.value}.yaml"
             )
             for emb_sel in CuRoboEmbodimentSelection
         }

@@ -47,8 +47,9 @@ class ADEPTPlaybackWrapper(DataPlaybackWrapper):
         parameters = json.loads(group.attrs["task_parameters"])
         source_name = f"episode_{Path(input_path).stem}_d{int(group.name.rsplit('_', 1)[1]):06d}"
         source_id = group.attrs.get("source_episode_id", f"robot/{task_name}/{source_name}")
+        robot = self.robots[0]
         output.attrs.update({
-            "source": "BEHAVIOR-1K", "embodiment": "r1pro",
+            "source": "BEHAVIOR-1K", "embodiment": robot.model,
             "source_episode_id": source_id,
             "source_file": os.path.relpath(Path(input_path).resolve(), Path(output.filename).resolve().parent),
             "source_group": group.name,
@@ -71,7 +72,6 @@ class ADEPTPlaybackWrapper(DataPlaybackWrapper):
         meta.create_dataset("task_parameters", data=json.dumps(parameters), dtype=h5py.string_dtype())
         control = output.create_group("control")
         control.create_dataset("native_action", data=group["action"][:transitions])
-        robot = self.robots[0]
         control.attrs["channel_indices"] = json.dumps({
             "base": as_numpy(robot.base_action_idx).tolist(), "trunk": as_numpy(robot.trunk_action_idx).tolist(),
             **{f"arm_{arm}": as_numpy(robot.arm_action_idx[arm]).tolist() for arm in ("left", "right")},

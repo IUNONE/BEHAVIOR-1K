@@ -9,6 +9,7 @@ import omnigibson as og
 import omnigibson.lazy as lazy
 import omnigibson.utils.transform_utils as T
 from omnigibson.adept import TASK_NAMES
+from omnigibson.adept.r1pro_wuji import open_positions, use_wuji_hand
 from omnigibson.adept.scene import ADEPTScene
 from omnigibson.macros import gm
 from omnigibson.utils.config_utils import TorchEncoder
@@ -68,7 +69,7 @@ def camera_config(config):
 
 
 def robot_config(config, purpose):
-    """构造与 JoyLo 一致的 R1Pro 控制器及相机配置."""
+    """构造 ADEPT 的 r1pro_wuji 控制器及相机配置."""
     path = Path(__file__).parents[1] / "eval" / "r1pro.yaml"
     with path.open() as stream:
         robot = yaml.safe_load(stream)
@@ -83,7 +84,8 @@ def robot_config(config, purpose):
         "sensor_kwargs": {"image_height": 480, "image_width": 480},
     } for link in ("zed_link", "left_realsense_link", "right_realsense_link")}
     robot["sensor_config"]["zed_link:Camera:0"]["sensor_kwargs"]["horizontal_aperture"] = 40.0
-    return robot
+    # 在叠上 common.yaml 之后再切换, 这样 28 维 reset_joint_pos 会被丢掉.
+    return use_wuji_hand(robot)
 
 
 def build_environment_config(task_name, purpose="check_env", instance_id=1, max_steps=None, task_dir=None):
@@ -172,8 +174,13 @@ def configure_robot_reset_pose(robot):
         for number, angle in enumerate(angles, start=1):
             name = f"{arm}_arm_joint{number}"
             reset_positions[robot.joints[name].dof_indices] = angle * th.pi / 180.0
-        for name in robot.finger_joint_names[arm]:
-            reset_positions[robot.joints[name].dof_indices] = 0.05
+        if robot.model == "r1pro_wuji":
+            opened = open_positions(arm)
+            for name in robot.finger_joint_names[arm]:
+                reset_positions[robot.joints[name].dof_indices] = opened[name]
+        else:
+            for name in robot.finger_joint_names[arm]:
+                reset_positions[robot.joints[name].dof_indices] = 0.05
     robot.reset_joint_pos = reset_positions
     for arm in arm_angles:
         indices = [robot.joints[f"{arm}_arm_joint{number}"].dof_indices[0] for number in range(1, 8)]

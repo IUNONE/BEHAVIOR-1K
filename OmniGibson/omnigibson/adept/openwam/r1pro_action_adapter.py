@@ -156,12 +156,12 @@ class R1ProActionAdapter:
         参数
         ----
         robot : omnigibson.robots.robot.Robot
-            环境中的 R1Pro.
+            环境中的 R1Pro 或装了 Wuji 手的 r1pro_wuji. 两者的 EEF20 都是每臂一个夹爪标量.
         max_joint_delta_rad : float
             单步每个手臂关节允许的最大绝对增量, 单位弧度.
         """
-        if robot.model != "r1pro":
-            raise ValueError(f"adapter expects r1pro, got {robot.model}.")
+        if robot.model not in {"r1pro", "r1pro_wuji"}:
+            raise ValueError(f"adapter expects r1pro or r1pro_wuji, got {robot.model}.")
         if float(max_joint_delta_rad) <= 0.0:
             raise ValueError(f"max_joint_delta_rad must be positive, got {max_joint_delta_rad}.")
         for arm, _, _, _ in _ARMS:

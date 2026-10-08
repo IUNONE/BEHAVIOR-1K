@@ -1,0 +1,184 @@
+# Do not pass this file directly to import_custom_robot.py.
+# Collision decomposition rewrites the URDF. Run import_usd(), which copies first.
+# EEF and camera poses are initial values to tune after import.
+urdf_path: urdf/r1pro_wuji.urdf
+name: r1pro_wuji
+headless: true
+overwrite: true
+merge_fixed_joints: false
+dataset_name: omnigibson-robot-assets
+base_motion:
+  wheel_links:
+  - wheel_motor_link1
+  - wheel_motor_link2
+  - wheel_motor_link3
+  wheel_joints:
+  - steer_motor_joint1
+  - wheel_motor_joint1
+  - steer_motor_joint2
+  - wheel_motor_joint2
+  - steer_motor_joint3
+  - wheel_motor_joint3
+  use_sphere_wheels: true
+  use_holonomic_joints: true
+collision:
+  decompose_method: convex
+  hull_count: 1
+  coacd_links: []
+  convex_links:
+  - base_link
+  - camera_head_left_link
+  - camera_head_right_link
+  - head_link
+  - imu_chassis_link
+  - imu_torso_link
+  - l_index_finger_distal
+  - l_index_finger_middle
+  - l_index_finger_proximal
+  - l_index_finger_proximal_abd
+  - l_index_finger_tip_sensor_frame
+  - l_middle_finger_distal
+  - l_middle_finger_middle
+  - l_middle_finger_proximal
+  - l_middle_finger_proximal_abd
+  - l_middle_finger_tip_sensor_frame
+  - l_mount
+  - l_pinky_distal
+  - l_pinky_middle
+  - l_pinky_proximal
+  - l_pinky_proximal_abd
+  - l_pinky_tip_sensor_frame
+  - l_ring_finger_distal
+  - l_ring_finger_middle
+  - l_ring_finger_proximal
+  - l_ring_finger_proximal_abd
+  - l_ring_finger_tip_sensor_frame
+  - l_thumb_distal
+  - l_thumb_middle
+  - l_thumb_proximal
+  - l_thumb_proximal_abd
+  - l_thumb_tip_sensor_frame
+  - l_wrist
+  - left_arm_base_link
+  - left_arm_link1
+  - left_arm_link2
+  - left_arm_link3
+  - left_arm_link4
+  - left_arm_link5
+  - left_arm_link6
+  - left_arm_link7
+  - left_d405_link
+  - left_gmsl_link
+  - lidar_chassis_left_link
+  - r_index_finger_distal
+  - r_index_finger_middle
+  - r_index_finger_proximal
+  - r_index_finger_proximal_abd
+  - r_index_finger_tip_sensor_frame
+  - r_middle_finger_distal
+  - r_middle_finger_middle
+  - r_middle_finger_proximal
+  - r_middle_finger_proximal_abd
+  - r_middle_finger_tip_sensor_frame
+  - r_mount
+  - r_pinky_distal
+  - r_pinky_middle
+  - r_pinky_proximal
+  - r_pinky_proximal_abd
+  - r_pinky_tip_sensor_frame
+  - r_ring_finger_distal
+  - r_ring_finger_middle
+  - r_ring_finger_proximal
+  - r_ring_finger_proximal_abd
+  - r_ring_finger_tip_sensor_frame
+  - r_thumb_distal
+  - r_thumb_middle
+  - r_thumb_proximal
+  - r_thumb_proximal_abd
+  - r_thumb_tip_sensor_frame
+  - r_wrist
+  - right_arm_base_link
+  - right_arm_link1
+  - right_arm_link2
+  - right_arm_link3
+  - right_arm_link4
+  - right_arm_link5
+  - right_arm_link6
+  - right_arm_link7
+  - right_d405_link
+  - right_gmsl_link
+  - steer_motor_link1
+  - steer_motor_link2
+  - steer_motor_link3
+  - torso_link1
+  - torso_link2
+  - torso_link3
+  - torso_link4
+  - wheel_motor_link1
+  - wheel_motor_link2
+  - wheel_motor_link3
+  no_decompose_links: []
+  no_collision_links: []
+eef_vis_links:
+- link: left_eef_link
+  parent_link: left_arm_link7
+  offset:
+    position:
+    - 0.0
+    - 0.0
+    - -0.22
+    orientation:
+    - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+- link: right_eef_link
+  parent_link: right_arm_link7
+  offset:
+    position:
+    - 0.0
+    - 0.0
+    - -0.22
+    orientation:
+    - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+camera_links:
+- link: zed_link
+  parent_link: null
+  offset:
+    position:
+    - 0
+    - 0
+    - 0
+    orientation:
+    - 0
+    - 0
+    - 0
+    - 1
+- link: left_realsense_link
+  parent_link: null
+  offset:
+    position:
+    - 0
+    - 0
+    - 0
+    orientation:
+    - 0
+    - 0
+    - 0
+    - 1
+- link: right_realsense_link
+  parent_link: null
+  offset:
+    position:
+    - 0
+    - 0
+    - 0
+    orientation:
+    - 0
+    - 0
+    - 0
+    - 1
+lidar_links: []
