@@ -310,8 +310,25 @@ def _hand_elements(hand_root):
     return elements
 
 
+def _settling_overlap_pairs(side, hand_links):
+    """静置时会把关节顶开的重叠: 弯腕, 肩与躯干, 腕部相机, 指尖传感器和中节."""
+    names = set(hand_links)
+    pairs = [
+        [f"{side}_arm_link5", f"{side}_arm_link7"],
+        [f"{side}_arm_link1", "torso_link4"],
+        [f"{side}_d405_link", f"{side}_gmsl_link"],
+    ]
+    for name in hand_links:
+        if not name.endswith("_tip_sensor_frame"):
+            continue
+        middle = name[: -len("_tip_sensor_frame")] + "_middle"
+        if middle in names:
+            pairs.append([middle, name])
+    return pairs
+
+
 def _exclusion_pairs(side, prefix, hand_links, mjcf):
-    """官方装配重叠排除, 再加法兰与手腕/安装座."""
+    """官方装配重叠排除, 再加法兰、手腕和静置重叠."""
     wrist = f"{prefix}_wrist"
     known = set(hand_links)
     matched = []
@@ -325,7 +342,12 @@ def _exclusion_pairs(side, prefix, hand_links, mjcf):
         source = "proximal-link-name"
     else:
         source = "mujoco"
-    pairs = [[f"{side}_arm_link7", f"{prefix}_mount"], [f"{side}_arm_link7", wrist], *matched]
+    pairs = [
+        [f"{side}_arm_link7", f"{prefix}_mount"],
+        [f"{side}_arm_link7", wrist],
+        *_settling_overlap_pairs(side, hand_links),
+        *matched,
+    ]
     unique = []
     for pair in pairs:
         ordered = tuple(pair)
@@ -671,6 +693,10 @@ def compose():
                 flush=True,
             )
 
+    exclusions.extend([["base_link", f"wheel_motor_link{index}"] for index in range(1, 4)])
+    sensor_pairs = [pair for pair in exclusions if any(name.endswith("_tip_sensor_frame") for name in pair)]
+    if len(sensor_pairs) != 10:
+        raise ValueError(f"expected 10 fingertip sensor collision pairs, got {len(sensor_pairs)}")
     link_names = {link.get("name") for link in root.findall("link")}
     for pair in exclusions:
         missing = [name for name in pair if name not in link_names]

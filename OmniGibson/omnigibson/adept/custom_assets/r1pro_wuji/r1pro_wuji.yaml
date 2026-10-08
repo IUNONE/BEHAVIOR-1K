@@ -94,6 +94,22 @@ disabled_collision_pairs:
   - l_mount
 - - left_arm_link7
   - l_wrist
+- - left_arm_link5
+  - left_arm_link7
+- - left_arm_link1
+  - torso_link4
+- - left_d405_link
+  - left_gmsl_link
+- - l_thumb_middle
+  - l_thumb_tip_sensor_frame
+- - l_index_finger_middle
+  - l_index_finger_tip_sensor_frame
+- - l_middle_finger_middle
+  - l_middle_finger_tip_sensor_frame
+- - l_ring_finger_middle
+  - l_ring_finger_tip_sensor_frame
+- - l_pinky_middle
+  - l_pinky_tip_sensor_frame
 - - l_thumb_proximal
   - l_wrist
 - - l_thumb_proximal_abd
@@ -118,6 +134,22 @@ disabled_collision_pairs:
   - r_mount
 - - right_arm_link7
   - r_wrist
+- - right_arm_link5
+  - right_arm_link7
+- - right_arm_link1
+  - torso_link4
+- - right_d405_link
+  - right_gmsl_link
+- - r_thumb_middle
+  - r_thumb_tip_sensor_frame
+- - r_index_finger_middle
+  - r_index_finger_tip_sensor_frame
+- - r_middle_finger_middle
+  - r_middle_finger_tip_sensor_frame
+- - r_ring_finger_middle
+  - r_ring_finger_tip_sensor_frame
+- - r_pinky_middle
+  - r_pinky_tip_sensor_frame
 - - r_thumb_proximal
   - r_wrist
 - - r_thumb_proximal_abd
@@ -138,6 +170,12 @@ disabled_collision_pairs:
   - r_wrist
 - - r_pinky_proximal_abd
   - r_wrist
+- - base_link
+  - wheel_motor_link1
+- - base_link
+  - wheel_motor_link2
+- - base_link
+  - wheel_motor_link3
 holonomic_base:
   force_sphere_wheel_approximation: true
 locomotion:
