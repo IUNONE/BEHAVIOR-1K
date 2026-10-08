@@ -2,7 +2,7 @@
 # default_joint_pos has 64 values: 6 holonomic base joints (x, y, z, rx, ry, rz),
 # then 4 torso, 7 left arm, 20 left hand, 7 right arm, 20 right hand.
 # Steer and wheel joints are fixed during import and are not DOFs.
-# Mount rpy is 90 degrees about z so the palm matches the old gripper opening.
+# Right mount yaw is 90 degrees. Left mount yaw is -90 degrees.
 # assisted_grasp points are wrist placeholders so assisted mode does not read an empty default.
 raw_controller_order:
 - base
@@ -98,8 +98,6 @@ disabled_collision_pairs:
   - left_arm_link7
 - - left_arm_link1
   - torso_link4
-- - left_d405_link
-  - left_gmsl_link
 - - l_thumb_middle
   - l_thumb_tip_sensor_frame
 - - l_index_finger_middle
@@ -138,8 +136,6 @@ disabled_collision_pairs:
   - right_arm_link7
 - - right_arm_link1
   - torso_link4
-- - right_d405_link
-  - right_gmsl_link
 - - r_thumb_middle
   - r_thumb_tip_sensor_frame
 - - r_index_finger_middle

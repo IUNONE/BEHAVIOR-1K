@@ -9,11 +9,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/base_link.STL" />
+        <mesh filename="../meshes/textured/base_link.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -31,11 +28,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/steer_motor_link1.STL" />
+        <mesh filename="../meshes/textured/steer_motor_link1.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -60,11 +54,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/wheel_motor_link1.STL" />
+        <mesh filename="../meshes/textured/wheel_motor_link1.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -88,11 +79,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/steer_motor_link2.STL" />
+        <mesh filename="../meshes/textured/steer_motor_link2.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -117,11 +105,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/wheel_motor_link2.STL" />
+        <mesh filename="../meshes/textured/wheel_motor_link2.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -145,11 +130,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/steer_motor_link3.STL" />
+        <mesh filename="../meshes/textured/steer_motor_link3.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -174,11 +156,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/wheel_motor_link3.STL" />
+        <mesh filename="../meshes/textured/wheel_motor_link3.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -256,11 +235,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/torso_link1.STL" />
+        <mesh filename="../meshes/textured/torso_link1.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -285,11 +261,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/torso_link2.STL" />
+        <mesh filename="../meshes/textured/torso_link2.obj" />
       </geometry>
-      <material name="r1pro_color_4">
-        <color rgba="1 0.949019607843137 0.513725490196078 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -314,11 +287,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/torso_link3.STL" />
+        <mesh filename="../meshes/textured/torso_link3.obj" />
       </geometry>
-      <material name="r1pro_color_5">
-        <color rgba="0.8 0.8 0.8 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -343,11 +313,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/torso_link4.STL" />
+        <mesh filename="../meshes/textured/torso_link4.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -362,6 +329,24 @@
     <child link="torso_link4" />
     <axis xyz="0 0 1" />
     <limit lower="-3.0193934150" upper="3.0193934150" effort="100" velocity="2.5" />
+  </joint>
+  <link name="zed_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1e-6" />
+      <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="../meshes/textured/zed_link.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <joint name="zed_joint" type="fixed">
+    <origin xyz="0.065511 0.060003 0.47598" rpy="-1.9199 0 -1.5708" />
+    <parent link="torso_link4" />
+    <child link="zed_link" />
   </joint>
   <link name="imu_torso_link">
     <inertial>
@@ -416,24 +401,6 @@
     <origin xyz="-0.00028292 0 0.40644" rpy="0 0.00032442 0" />
     <parent link="torso_link4" />
     <child link="head_link" />
-  </joint>
-  <link name="zed_link">
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="1e-6" />
-      <inertia ixx="1e-9" ixy="0" ixz="0" iyy="1e-9" iyz="0" izz="1e-9" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <box size="0.001 0.001 0.001" />
-      </geometry>
-    </visual>
-  </link>
-  <joint name="zed_joint" type="fixed">
-    <origin xyz="0.064821 -0.0001785 0.093658" rpy="-1.9199 0 -1.5708" />
-    <parent link="head_link" />
-    <child link="zed_link" />
   </joint>
   <link name="camera_head_left_link">
     <inertial>
@@ -498,11 +465,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_base_link.STL" />
+        <mesh filename="../meshes/textured/left_arm_base_link.obj" />
       </geometry>
-      <material name="r1pro_color_6">
-        <color rgba="0.811764705882353 0.843137254901961 0.909803921568627 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -525,11 +489,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link1.STL" />
+        <mesh filename="../meshes/textured/left_arm_link1.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -554,11 +515,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link2.STL" />
+        <mesh filename="../meshes/textured/left_arm_link2.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -583,11 +541,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link3.STL" />
+        <mesh filename="../meshes/textured/left_arm_link3.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -612,11 +567,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link4.STL" />
+        <mesh filename="../meshes/textured/left_arm_link4.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -641,11 +593,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link5.STL" />
+        <mesh filename="../meshes/textured/left_arm_link5.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -670,11 +619,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link6.STL" />
+        <mesh filename="../meshes/textured/left_arm_link6.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -699,11 +645,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_arm_link7.STL" />
+        <mesh filename="../meshes/textured/left_arm_link7.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -720,7 +663,7 @@
     <limit lower="-1.5358934150" upper="1.5358934150" effort="18" velocity="10.4720" />
   </joint>
   <joint name="l_mount_joint" type="fixed">
-    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 1.570796327" />
+    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 -1.570796327" />
     <parent link="left_arm_link7" />
     <child link="l_mount" />
   </joint>
@@ -1497,71 +1440,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_gripper_link.STL" />
+        <mesh filename="../meshes/textured/left_gripper_link.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
   </link>
   <joint name="left_gripper_joint" type="fixed">
     <origin xyz="-0.0295 0.0 -0.1637" rpy="0 0 0" />
     <parent link="left_arm_link7" />
     <child link="left_gripper_link" />
-  </joint>
-  <link name="left_gmsl_link">
-    <inertial>
-      <origin xyz="-3.53876339770354E-06 0.00952645301735067 -0.0193719007025304" rpy="0 0 0" />
-      <mass value="0.0230739846089694" />
-      <inertia ixx="4.92288959423237E-06" ixy="1.6786116612382E-08" ixz="1.64117264604509E-10" iyy="4.3213638594574E-06" iyz="1.02602423053323E-06" izz="4.37204196127736E-06" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
-      </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint name="left_gmsl_joint" type="fixed">
-    <origin xyz="0.06129 0 0.0082885" rpy="-3.1416 0 -1.5708" />
-    <parent link="l_mount" />
-    <child link="left_gmsl_link" />
-  </joint>
-  <link name="left_d405_link">
-    <inertial>
-      <origin xyz="0.00904752892529659 0.0136909832199389 -0.00853046537674518" rpy="0 0 0" />
-      <mass value="0.0674054673338197" />
-      <inertia ixx="2.44622496510173E-05" ixy="4.16070671801075E-10" ixz="-1.49033897860268E-08" iyy="2.02869016745121E-05" iyz="2.03088899511244E-06" izz="1.88161703014415E-05" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_d405_link.STL" />
-      </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_d405_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint name="left_d405_joint" type="fixed">
-    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
-    <parent link="l_mount" />
-    <child link="left_d405_link" />
   </joint>
   <link name="left_realsense_link">
     <inertial>
@@ -1572,13 +1458,13 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.001 0.001 0.001" />
+        <mesh filename="../meshes/textured/left_realsense_link.obj" />
       </geometry>
     </visual>
   </link>
   <joint name="left_realsense_joint" type="fixed">
-    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
-    <parent link="l_mount" />
+    <origin xyz="0.05051 0.0028934 0.0051317" rpy="-3.1376 -0.43631 3.1399" />
+    <parent link="left_gripper_link" />
     <child link="left_realsense_link" />
   </joint>
   <link name="right_arm_base_link">
@@ -1590,11 +1476,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_base_link.STL" />
+        <mesh filename="../meshes/textured/right_arm_base_link.obj" />
       </geometry>
-      <material name="r1pro_color_6">
-        <color rgba="0.811764705882353 0.843137254901961 0.909803921568627 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1617,11 +1500,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link1.STL" />
+        <mesh filename="../meshes/textured/right_arm_link1.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1646,11 +1526,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link2.STL" />
+        <mesh filename="../meshes/textured/right_arm_link2.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1675,11 +1552,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link3.STL" />
+        <mesh filename="../meshes/textured/right_arm_link3.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1704,11 +1578,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link4.STL" />
+        <mesh filename="../meshes/textured/right_arm_link4.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1733,11 +1604,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link5.STL" />
+        <mesh filename="../meshes/textured/right_arm_link5.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1762,11 +1630,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link6.STL" />
+        <mesh filename="../meshes/textured/right_arm_link6.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -1791,11 +1656,8 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/right_arm_link7.STL" />
+        <mesh filename="../meshes/textured/right_arm_link7.obj" />
       </geometry>
-      <material name="r1pro_color_7">
-        <color rgba="0.82353 0.82353 1 1" />
-      </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -2589,71 +2451,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="../meshes/r1pro/left_gripper_link.STL" />
+        <mesh filename="../meshes/textured/right_gripper_link.obj" />
       </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
     </visual>
   </link>
   <joint name="right_gripper_joint" type="fixed">
     <origin xyz="-0.0295 0.0 -0.1637" rpy="0 0 0" />
     <parent link="right_arm_link7" />
     <child link="right_gripper_link" />
-  </joint>
-  <link name="right_gmsl_link">
-    <inertial>
-      <origin xyz="-3.53876339770354E-06 0.00952645301735067 -0.0193719007025304" rpy="0 0 0" />
-      <mass value="0.0230739846089694" />
-      <inertia ixx="4.92288959423237E-06" ixy="1.6786116612382E-08" ixz="1.64117264604509E-10" iyy="4.3213638594574E-06" iyz="1.02602423053323E-06" izz="4.37204196127736E-06" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
-      </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint name="right_gmsl_joint" type="fixed">
-    <origin xyz="0.06129 0 0.0082885" rpy="-3.1416 0 -1.5708" />
-    <parent link="r_mount" />
-    <child link="right_gmsl_link" />
-  </joint>
-  <link name="right_d405_link">
-    <inertial>
-      <origin xyz="0.00904752892529659 0.0136909832199389 -0.00853046537674518" rpy="0 0 0" />
-      <mass value="0.0674054673338197" />
-      <inertia ixx="2.44622496510173E-05" ixy="4.16070671801075E-10" ixz="-1.49033897860268E-08" iyy="2.02869016745121E-05" iyz="2.03088899511244E-06" izz="1.88161703014415E-05" />
-    </inertial>
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_d405_link.STL" />
-      </geometry>
-      <material name="r1pro_color_1">
-        <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <mesh filename="../meshes/r1pro/left_d405_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint name="right_d405_joint" type="fixed">
-    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
-    <parent link="r_mount" />
-    <child link="right_d405_link" />
   </joint>
   <link name="right_realsense_link">
     <inertial>
@@ -2664,13 +2469,13 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size="0.001 0.001 0.001" />
+        <mesh filename="../meshes/textured/right_realsense_link.obj" />
       </geometry>
     </visual>
   </link>
   <joint name="right_realsense_joint" type="fixed">
-    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
-    <parent link="r_mount" />
+    <origin xyz="0.05051 0.0028934 0.0051317" rpy="-3.1376 -0.43631 3.1399" />
+    <parent link="right_gripper_link" />
     <child link="right_realsense_link" />
   </joint>
 </robot>

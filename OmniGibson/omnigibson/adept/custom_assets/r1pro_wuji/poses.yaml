@@ -13,23 +13,26 @@ mount_xyz:
 - 0.0
 - -0.1637
 mount_rpy:
-- 0.0
-- 0.0
-- 1.5707963267948966
-mount_note: 90 degree yaw about the flange axis. Fingers still extend along arm -z.
+  right:
+  - 0.0
+  - 0.0
+  - 1.5707963267948966
+  left:
+  - 0.0
+  - 0.0
+  - -1.5707963267948966
+mount_note: Right yaw is 90 degrees. Left is an extra 180 degrees, so -90 degrees.
 eef_position_in_arm_link7:
 - 0.0
 - 0.0
 - -0.22
 eef_orientation_xyzw:
-- 0.7071067812
-- 0.7071067812
-- 0.0
-- 0.0
-zed_link_xyz_in_head_link:
-- 0.064821
-- -0.0001785
-- 0.093658
+- right
+- left
+zed_link_xyz_in_torso_link4:
+- 0.065511
+- 0.060003
+- 0.47598
 joints:
   left:
   - l_thumb_cmc_flex

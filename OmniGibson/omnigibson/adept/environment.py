@@ -160,18 +160,16 @@ def configure_robot_physics(env):
         head = lazy.isaacsim.core.utils.prims.get_prim_at_path(
             prim_path=f"{robot.links['zed_link'].prim_path}/Camera"
         )
-        # Official r1pro zed_link is not the camera body. r1pro_wuji places zed_link on the head cameras.
-        translate = (0.0, 0.0, 0.0) if robot.model == "r1pro_wuji" else (0.06, 0.0, 0.01)
-        head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(*translate))
+        head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.06, 0.0, 0.01))
         head.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
         if robot.model == "r1pro_wuji":
-            # D405 mesh surrounds the link origin. Look along the link +Z, just outside the housing.
+            # Same Camera prim orientation as omnigibson-robot-assets models/r1pro.
             for link_name in ("left_realsense_link", "right_realsense_link"):
                 wrist = lazy.isaacsim.core.utils.prims.get_prim_at_path(
                     prim_path=f"{robot.links[link_name].prim_path}/Camera"
                 )
-                wrist.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.0, 0.0, 0.04))
-                wrist.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
+                wrist.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.0, 0.0, 0.0))
+                wrist.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, 0.7071, -0.7071, 0.0))
 
 
 def configure_robot_reset_pose(robot):

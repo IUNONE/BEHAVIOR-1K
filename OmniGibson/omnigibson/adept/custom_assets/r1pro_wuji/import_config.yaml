@@ -67,8 +67,6 @@ collision:
   - left_arm_link5
   - left_arm_link6
   - left_arm_link7
-  - left_d405_link
-  - left_gmsl_link
   - lidar_chassis_left_link
   - r_index_finger_distal
   - r_index_finger_middle
@@ -105,8 +103,6 @@ collision:
   - right_arm_link5
   - right_arm_link6
   - right_arm_link7
-  - right_d405_link
-  - right_gmsl_link
   - steer_motor_link1
   - steer_motor_link2
   - steer_motor_link3
@@ -129,7 +125,7 @@ eef_vis_links:
     - -0.22
     orientation:
     - 0.7071067812
-    - 0.7071067812
+    - -0.7071067812
     - 0.0
     - 0.0
 - link: right_eef_link

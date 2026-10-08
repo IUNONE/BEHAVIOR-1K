@@ -57,17 +57,25 @@ ARM_RESET_DEGREES = {
     "right": (0.0, -60.0, 0.0, -90.0, -60.0, 45.0, 45.0),
 }
 # 夹爪固定关节相对 arm_link7 的原点. 两侧 URDF 相同.
-# 绕法兰轴转 90°, 手掌才和原来的夹爪开口方向一致. 手指仍沿 arm_link7 的 -z.
+# 绕法兰轴转 90°. 右手这个角度是对的, 左手再转 180°.
 GRIPPER_XYZ = (-0.0295, 0.0, -0.1637)
-MOUNT_RPY = (0.0, 0.0, math.pi / 2.0)
-D405_XYZ = (0.074676, 0.009, 0.022183)
-D405_RPY = (2.4435, 0.0, -1.5708)
-GMSL_XYZ = (0.06129, 0.0, 0.0082885)
-GMSL_RPY = (-3.1416, 0.0, -1.5708)
+MOUNT_RPY = {
+    "right": (0.0, 0.0, math.pi / 2.0),
+    "left": (0.0, 0.0, -math.pi / 2.0),
+}
+# 官方 r1pro USD 里的相机位姿. 网格是带 UV 的 OBJ, 不能换成 2026 的 D405 STL.
+REALSENSE_XYZ = (0.05051, 0.0028934, 0.0051317)
+REALSENSE_RPY = (-3.1376, -0.43631, 3.1399)
+ZED_XYZ = (0.065511, 0.060003, 0.47598)
+ZED_RPY = (-1.9199, 0.0, -1.5708)
+TEXTURED_MESHES = ASSET_DIR / "meshes" / "textured"
 # 导入器创建的 eef 连杆不写进 URDF. 局部 +z 指向指尖, 即 arm_link7 的 -z.
-# 姿态是 R_z(90°) * R_x(180°), 和安装座的偏航一致.
+# 姿态是 R_z(mount yaw) * R_x(180°), 局部 +z 仍指向指尖.
 EEF_POSITION = (0.0, 0.0, -0.22)
-EEF_ORIENTATION_XYZW = (0.7071067812, 0.7071067812, 0.0, 0.0)
+EEF_ORIENTATION_XYZW = {
+    "right": (0.7071067812, 0.7071067812, 0.0, 0.0),
+    "left": (0.7071067812, -0.7071067812, 0.0, 0.0),
+}
 # 拇指 MCP 没有 _flex 后缀. _abd 已在 _is_curl 里排除, 所以 _mcp 不会把外展关节算成弯曲.
 CURL_TOKENS = ("_flex", "_pip", "_dip", "_ip", "_mcp")
 ACTUATED_TYPES = {"revolute", "continuous", "prismatic"}
@@ -213,11 +221,6 @@ def _massless_link(name):
         "inertia",
         {"ixx": "1e-9", "ixy": "0", "ixz": "0", "iyy": "1e-9", "iyz": "0", "izz": "1e-9"},
     )
-    # A link with no visual still gets a dangling /visuals/<link> reference from the URDF importer.
-    visual = ET.SubElement(link, "visual")
-    ET.SubElement(visual, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
-    geometry = ET.SubElement(visual, "geometry")
-    ET.SubElement(geometry, "box", {"size": "0.001 0.001 0.001"})
     return link
 
 
@@ -257,9 +260,7 @@ def _download_hand(commit, side):
 
 
 def _retarget_cameras(root, side):
-    """保留夹爪外壳作为法兰外观, 删掉手指, 把相机装到手上的 mount."""
-    prefix = SIDE_PREFIX[side]
-    mount_link = f"{prefix}_mount"
+    """保留夹爪外壳, 删掉手指和 2026 的 D405, 把官方 Realsense 装回夹爪."""
     gripper = _find_named(root, "joint", f"{side}_gripper_joint")
     parent = gripper.find("parent").get("link")
     if parent != f"{side}_arm_link7":
@@ -269,39 +270,36 @@ def _retarget_cameras(root, side):
     if any(abs(value) > 1e-4 for value in gripper_rpy):
         raise ValueError(f"{side} gripper rpy is not zero, so the mount frame would not match: {gripper_rpy}")
 
-    for joint_name, child_xyz, child_rpy in (
-        (f"{side}_d405_joint", D405_XYZ, D405_RPY),
-        (f"{side}_gmsl_joint", GMSL_XYZ, GMSL_RPY),
-    ):
-        joint = _find_named(root, "joint", joint_name)
-        if joint.find("parent").get("link") != f"{side}_gripper_link":
-            raise ValueError(f"{joint_name} parent is not the gripper link")
-        xyz, rpy = _origin(joint)
-        _close(xyz, child_xyz, f"{joint_name} xyz")
-        _close(rpy, child_rpy, f"{joint_name} rpy")
-        joint.find("parent").set("link", mount_link)
-
     _remove_named(
         root,
         "joint",
-        {f"{side}_gripper_finger_joint1", f"{side}_gripper_finger_joint2"},
+        {
+            f"{side}_gripper_finger_joint1",
+            f"{side}_gripper_finger_joint2",
+            f"{side}_d405_joint",
+            f"{side}_gmsl_joint",
+        },
     )
     _remove_named(
         root,
         "link",
-        {f"{side}_gripper_finger_link1", f"{side}_gripper_finger_link2"},
+        {
+            f"{side}_gripper_finger_link1",
+            f"{side}_gripper_finger_link2",
+            f"{side}_d405_link",
+            f"{side}_gmsl_link",
+        },
     )
     housing = _find_named(root, "link", f"{side}_gripper_link")
     for collision in list(housing.findall("collision")):
         housing.remove(collision)
-    d405_xyz, d405_rpy = _origin(_find_named(root, "joint", f"{side}_d405_joint"))
     realsense = f"{side}_realsense_link"
     _insert_after(
         root,
-        f"{side}_d405_joint",
+        f"{side}_gripper_joint",
         [
             _massless_link(realsense),
-            _fixed_joint(f"{side}_realsense_joint", mount_link, realsense, d405_xyz, d405_rpy),
+            _fixed_joint(f"{side}_realsense_joint", f"{side}_gripper_link", realsense, REALSENSE_XYZ, REALSENSE_RPY),
         ],
     )
 
@@ -322,7 +320,6 @@ def _settling_overlap_pairs(side, hand_links):
     pairs = [
         [f"{side}_arm_link5", f"{side}_arm_link7"],
         [f"{side}_arm_link1", "torso_link4"],
-        [f"{side}_d405_link", f"{side}_gmsl_link"],
     ]
     for name in hand_links:
         if not name.endswith("_tip_sensor_frame"):
@@ -408,6 +405,31 @@ def _remove_zero_fixed_axes(root):
             joint.remove(axis)
 
 
+def _use_official_visuals(root):
+    """把和官方 r1pro 同名连杆的外观换成带 UV 的 OBJ. 碰撞仍用 2026 STL."""
+    if not (TEXTURED_MESHES / "output.jpg").is_file():
+        raise FileNotFoundError(f"textured meshes are missing: {TEXTURED_MESHES}")
+    for link in root.findall("link"):
+        obj = TEXTURED_MESHES / f"{link.get('name')}.obj"
+        if not obj.is_file():
+            continue
+        filename = f"../meshes/textured/{obj.name}"
+        visuals = link.findall("visual")
+        if not visuals:
+            visual = ET.SubElement(link, "visual")
+            ET.SubElement(visual, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
+            geometry = ET.SubElement(visual, "geometry")
+            ET.SubElement(geometry, "mesh", {"filename": filename})
+            continue
+        for visual in visuals:
+            mesh = visual.find("geometry/mesh")
+            if mesh is not None:
+                mesh.set("filename", filename)
+            material = visual.find("material")
+            if material is not None:
+                visual.remove(material)
+
+
 def _assign_material_names(root):
     """给空名字的材质按颜色命名. Isaac 会把同名空材质覆盖成同一种颜色."""
     names = {}
@@ -477,11 +499,12 @@ def _validate_tree(root, hand_joints, finger_links):
             raise ValueError(f"{prefix}_mount_joint is not attached to {side}_arm_link7")
         if mount.find("child").get("link") != f"{prefix}_mount":
             raise ValueError(f"{prefix}_mount_joint child is not {prefix}_mount")
-        _close(_origin(mount)[1], MOUNT_RPY, f"{prefix}_mount_joint rpy")
-        for joint_name in (f"{side}_d405_joint", f"{side}_gmsl_joint", f"{side}_realsense_joint"):
-            parent = _find_named(root, "joint", joint_name).find("parent").get("link")
-            if parent != f"{prefix}_mount":
-                raise ValueError(f"{joint_name} parent is {parent}, expected {prefix}_mount")
+        _close(_origin(mount)[1], MOUNT_RPY[side], f"{prefix}_mount_joint rpy")
+        realsense = _find_named(root, "joint", f"{side}_realsense_joint")
+        if realsense.find("parent").get("link") != f"{side}_gripper_link":
+            raise ValueError(f"{side}_realsense_joint is not attached to the gripper housing")
+        if f"{side}_d405_link" in names or f"{side}_gmsl_link" in names:
+            raise ValueError(f"{side} still has the 2026 D405 or GMSL link")
         if len(hand_joints[side]) != 20:
             raise ValueError(f"{side} hand has {len(hand_joints[side])} actuated joints, expected 20")
     for link_name in ("zed_link", "left_realsense_link", "right_realsense_link"):
@@ -630,7 +653,7 @@ def _import_config(convex_links, wheel_links, wheel_joints):
             "parent_link": f"{side}_arm_link7",
             "offset": {
                 "position": list(EEF_POSITION),
-                "orientation": list(EEF_ORIENTATION_XYZW),
+                "orientation": list(EEF_ORIENTATION_XYZW[side]),
             },
         }
 
@@ -709,7 +732,9 @@ def compose():
         ]
         elements = _hand_elements(hand_root)
         _insert_after(root, f"{side}_arm_joint7", [
-            _fixed_joint(f"{prefix}_mount_joint", f"{side}_arm_link7", f"{prefix}_mount", GRIPPER_XYZ, MOUNT_RPY),
+            _fixed_joint(
+                f"{prefix}_mount_joint", f"{side}_arm_link7", f"{prefix}_mount", GRIPPER_XYZ, MOUNT_RPY[side]
+            ),
             *elements,
         ])
         hand_joints[side] = [name for name, _, _ in revolute]
@@ -745,18 +770,15 @@ def compose():
         if missing:
             raise ValueError(f"collision exclusion references a missing link: {pair}")
 
-    head_left_xyz, head_rpy = _origin(_find_named(root, "joint", "camera_head_left_joint"))
-    head_right_xyz, head_right_rpy = _origin(_find_named(root, "joint", "camera_head_right_joint"))
-    _close(head_rpy, head_right_rpy, "head camera rpy")
-    zed_xyz = tuple(round((left + right) / 2.0, 9) for left, right in zip(head_left_xyz, head_right_xyz))
-    _insert_after(root, "head_joint", [
+    _insert_after(root, "torso_joint4", [
         _massless_link("zed_link"),
-        _fixed_joint("zed_joint", "head_link", "zed_link", zed_xyz, head_rpy),
+        _fixed_joint("zed_joint", "torso_link4", "zed_link", ZED_XYZ, ZED_RPY),
     ])
 
     _drop_empty_leaf_links(root)
     _remove_zero_fixed_axes(root)
     _assign_material_names(root)
+    _use_official_visuals(root)
     urdf_path = ASSET_DIR / "urdf" / f"{MODEL}.urdf"
     urdf_path.parent.mkdir(parents=True, exist_ok=True)
     ET.indent(root, space="  ")
@@ -782,7 +804,7 @@ def compose():
         "# default_joint_pos has 64 values: 6 holonomic base joints (x, y, z, rx, ry, rz),\n"
         "# then 4 torso, 7 left arm, 20 left hand, 7 right arm, 20 right hand.\n"
         "# Steer and wheel joints are fixed during import and are not DOFs.\n"
-        "# Mount rpy is 90 degrees about z so the palm matches the old gripper opening.\n"
+        "# Right mount yaw is 90 degrees. Left mount yaw is -90 degrees.\n"
         "# assisted_grasp points are wrist placeholders so assisted mode does not read an empty default.\n",
         _definition_payload(hand_joints, finger_links, exclusions, reset),
     )
@@ -799,11 +821,11 @@ def compose():
                 "exclusion_pairs": exclusion_sources,
             },
             "mount_xyz": list(GRIPPER_XYZ),
-            "mount_rpy": list(MOUNT_RPY),
-            "mount_note": "90 degree yaw about the flange axis. Fingers still extend along arm -z.",
+            "mount_rpy": {side: list(value) for side, value in MOUNT_RPY.items()},
+            "mount_note": "Right yaw is 90 degrees. Left is an extra 180 degrees, so -90 degrees.",
             "eef_position_in_arm_link7": list(EEF_POSITION),
             "eef_orientation_xyzw": list(EEF_ORIENTATION_XYZW),
-            "zed_link_xyz_in_head_link": list(zed_xyz),
+            "zed_link_xyz_in_torso_link4": list(ZED_XYZ),
             "joints": hand_joints,
             "open_qpos": stored["open"],
             "closed_qpos": stored["closed"],
