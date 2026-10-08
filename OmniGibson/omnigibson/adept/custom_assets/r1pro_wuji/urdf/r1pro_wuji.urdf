@@ -11,7 +11,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/base_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -33,7 +33,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/steer_motor_link1.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -62,7 +62,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/wheel_motor_link1.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -90,7 +90,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/steer_motor_link2.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -119,7 +119,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/wheel_motor_link2.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -147,7 +147,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/steer_motor_link3.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -176,7 +176,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/wheel_motor_link3.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -204,7 +204,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/lidar_chassis_left_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -231,7 +231,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/imu_chassis_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -258,7 +258,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/torso_link1.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -287,7 +287,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/torso_link2.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_4">
         <color rgba="1 0.949019607843137 0.513725490196078 1" />
       </material>
     </visual>
@@ -316,7 +316,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/torso_link3.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_5">
         <color rgba="0.8 0.8 0.8 1" />
       </material>
     </visual>
@@ -345,7 +345,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/torso_link4.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -374,7 +374,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/imu_torso_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -401,7 +401,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/head_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -431,7 +431,7 @@
     </visual>
   </link>
   <joint name="zed_joint" type="fixed">
-    <origin xyz="0.064821 -0.0001785 0.093658" rpy="0 0 0" />
+    <origin xyz="0.064821 -0.0001785 0.093658" rpy="-1.9199 0 -1.5708" />
     <parent link="head_link" />
     <child link="zed_link" />
   </joint>
@@ -446,7 +446,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/camera_head_left_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -473,7 +473,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/camera_head_right_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -500,7 +500,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_base_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_6">
         <color rgba="0.811764705882353 0.843137254901961 0.909803921568627 1" />
       </material>
     </visual>
@@ -527,7 +527,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link1.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -556,7 +556,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link2.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -585,7 +585,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link3.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -614,7 +614,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link4.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -643,7 +643,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link5.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -672,7 +672,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link6.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -701,7 +701,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_arm_link7.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -720,7 +720,7 @@
     <limit lower="-1.5358934150" upper="1.5358934150" effort="18" velocity="10.4720" />
   </joint>
   <joint name="l_mount_joint" type="fixed">
-    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 0" />
+    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 1.570796327" />
     <parent link="left_arm_link7" />
     <child link="l_mount" />
   </joint>
@@ -735,7 +735,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_mount.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -757,7 +757,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_wrist.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -784,7 +784,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_thumb_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -813,7 +813,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_thumb_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -842,7 +842,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_thumb_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -871,7 +871,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_thumb_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -900,7 +900,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_thumb_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -927,7 +927,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_index_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -956,7 +956,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_index_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -985,7 +985,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_index_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1014,7 +1014,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_index_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1043,7 +1043,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_index_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -1070,7 +1070,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_middle_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1099,7 +1099,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_middle_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1128,7 +1128,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_middle_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1157,7 +1157,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_middle_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1186,7 +1186,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_middle_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -1213,7 +1213,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_ring_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1242,7 +1242,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_ring_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1271,7 +1271,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_ring_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1300,7 +1300,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_ring_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1329,7 +1329,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_ring_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -1356,7 +1356,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_pinky_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1385,7 +1385,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_pinky_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1414,7 +1414,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_pinky_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -1443,7 +1443,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_pinky_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1472,7 +1472,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/left/l_pinky_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -1499,7 +1499,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -1511,8 +1511,8 @@
     </collision>
   </link>
   <joint name="left_gmsl_joint" type="fixed">
-    <origin xyz="0.03179 0 -0.1554115" rpy="-3.1416 0 -1.5708" />
-    <parent link="left_arm_link7" />
+    <origin xyz="0.06129 0 0.0082885" rpy="-3.1416 0 -1.5708" />
+    <parent link="l_mount" />
     <child link="left_gmsl_link" />
   </joint>
   <link name="left_d405_link">
@@ -1526,7 +1526,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_d405_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -1538,8 +1538,8 @@
     </collision>
   </link>
   <joint name="left_d405_joint" type="fixed">
-    <origin xyz="0.045176 0.009 -0.141517" rpy="2.4435 0 -1.5708" />
-    <parent link="left_arm_link7" />
+    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
+    <parent link="l_mount" />
     <child link="left_d405_link" />
   </joint>
   <link name="left_realsense_link">
@@ -1556,8 +1556,8 @@
     </visual>
   </link>
   <joint name="left_realsense_joint" type="fixed">
-    <origin xyz="0.045176 0.009 -0.141517" rpy="2.4435 0 -1.5708" />
-    <parent link="left_arm_link7" />
+    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
+    <parent link="l_mount" />
     <child link="left_realsense_link" />
   </joint>
   <link name="right_arm_base_link">
@@ -1571,7 +1571,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_base_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_6">
         <color rgba="0.811764705882353 0.843137254901961 0.909803921568627 1" />
       </material>
     </visual>
@@ -1598,7 +1598,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link1.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1627,7 +1627,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link2.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1656,7 +1656,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link3.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1685,7 +1685,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link4.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1714,7 +1714,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link5.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1743,7 +1743,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link6.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1772,7 +1772,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/right_arm_link7.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_7">
         <color rgba="0.82353 0.82353 1 1" />
       </material>
     </visual>
@@ -1791,7 +1791,7 @@
     <limit lower="-1.5358934150" upper="1.5358934150" effort="18" velocity="10.4720" />
   </joint>
   <joint name="r_mount_joint" type="fixed">
-    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 0" />
+    <origin xyz="-0.0295 0 -0.1637" rpy="0 0 1.570796327" />
     <parent link="right_arm_link7" />
     <child link="r_mount" />
   </joint>
@@ -1806,7 +1806,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_mount.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -1828,7 +1828,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_wrist.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1855,7 +1855,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_thumb_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -1884,7 +1884,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_thumb_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -1913,7 +1913,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_thumb_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_8">
         <color rgba="0.627450980392157 0.627450980392157 0.627450980392157 1" />
       </material>
     </visual>
@@ -1942,7 +1942,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_thumb_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -1971,7 +1971,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_thumb_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -1998,7 +1998,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_index_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2027,7 +2027,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_index_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2056,7 +2056,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_index_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2085,7 +2085,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_index_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -2114,7 +2114,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_index_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -2141,7 +2141,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_middle_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2170,7 +2170,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_middle_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2199,7 +2199,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_middle_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2228,7 +2228,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_middle_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -2257,7 +2257,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_middle_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -2284,7 +2284,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_ring_finger_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2313,7 +2313,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_ring_finger_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2342,7 +2342,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_ring_finger_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2371,7 +2371,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_ring_finger_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -2400,7 +2400,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_ring_finger_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -2427,7 +2427,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_pinky_proximal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2456,7 +2456,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_pinky_proximal_abd.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2485,7 +2485,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_pinky_middle.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_3">
         <color rgba="1 1 1 1" />
       </material>
     </visual>
@@ -2514,7 +2514,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_pinky_distal.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_2">
         <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
@@ -2543,7 +2543,7 @@
       <geometry>
         <mesh filename="../meshes/wuji/right/r_pinky_tip_sensor_frame.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_9">
         <color rgba="0.55 0.78 0.95 1" />
       </material>
     </visual>
@@ -2570,7 +2570,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_gmsl_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -2582,8 +2582,8 @@
     </collision>
   </link>
   <joint name="right_gmsl_joint" type="fixed">
-    <origin xyz="0.03179 0 -0.1554115" rpy="-3.1416 0 -1.5708" />
-    <parent link="right_arm_link7" />
+    <origin xyz="0.06129 0 0.0082885" rpy="-3.1416 0 -1.5708" />
+    <parent link="r_mount" />
     <child link="right_gmsl_link" />
   </joint>
   <link name="right_d405_link">
@@ -2597,7 +2597,7 @@
       <geometry>
         <mesh filename="../meshes/r1pro/left_d405_link.STL" />
       </geometry>
-      <material name="">
+      <material name="r1pro_color_1">
         <color rgba="0.611764705882353 0.658823529411765 0.670588235294118 1" />
       </material>
     </visual>
@@ -2609,8 +2609,8 @@
     </collision>
   </link>
   <joint name="right_d405_joint" type="fixed">
-    <origin xyz="0.045176 0.009 -0.141517" rpy="2.4435 0 -1.5708" />
-    <parent link="right_arm_link7" />
+    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
+    <parent link="r_mount" />
     <child link="right_d405_link" />
   </joint>
   <link name="right_realsense_link">
@@ -2627,8 +2627,8 @@
     </visual>
   </link>
   <joint name="right_realsense_joint" type="fixed">
-    <origin xyz="0.045176 0.009 -0.141517" rpy="2.4435 0 -1.5708" />
-    <parent link="right_arm_link7" />
+    <origin xyz="0.074676 0.009 0.022183" rpy="2.4435 0 -1.5708" />
+    <parent link="r_mount" />
     <child link="right_realsense_link" />
   </joint>
 </robot>

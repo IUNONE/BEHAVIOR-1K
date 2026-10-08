@@ -128,8 +128,8 @@ eef_vis_links:
     - 0.0
     - -0.22
     orientation:
-    - 1.0
-    - 0.0
+    - 0.7071067812
+    - 0.7071067812
     - 0.0
     - 0.0
 - link: right_eef_link
@@ -140,8 +140,8 @@ eef_vis_links:
     - 0.0
     - -0.22
     orientation:
-    - 1.0
-    - 0.0
+    - 0.7071067812
+    - 0.7071067812
     - 0.0
     - 0.0
 camera_links:

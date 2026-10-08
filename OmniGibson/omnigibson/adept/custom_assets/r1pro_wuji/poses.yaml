@@ -15,16 +15,15 @@ mount_xyz:
 mount_rpy:
 - 0.0
 - 0.0
-- 0.0
-mount_note: Palm yaw is not measured. rpy 0 keeps the fingers along the old gripper
-  -z.
+- 1.5707963267948966
+mount_note: 90 degree yaw about the flange axis. Fingers still extend along arm -z.
 eef_position_in_arm_link7:
 - 0.0
 - 0.0
 - -0.22
 eef_orientation_xyzw:
-- 1.0
-- 0.0
+- 0.7071067812
+- 0.7071067812
 - 0.0
 - 0.0
 zed_link_xyz_in_head_link:

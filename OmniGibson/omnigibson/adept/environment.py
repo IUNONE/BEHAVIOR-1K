@@ -160,7 +160,9 @@ def configure_robot_physics(env):
         head = lazy.isaacsim.core.utils.prims.get_prim_at_path(
             prim_path=f"{robot.links['zed_link'].prim_path}/Camera"
         )
-        head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(0.06, 0.0, 0.01))
+        # Official r1pro zed_link is not the camera body. r1pro_wuji places zed_link on the head cameras.
+        translate = (0.0, 0.0, 0.0) if robot.model == "r1pro_wuji" else (0.06, 0.0, 0.01)
+        head.GetAttribute("xformOp:translate").Set(lazy.pxr.Gf.Vec3d(*translate))
         head.GetAttribute("xformOp:orient").Set(lazy.pxr.Gf.Quatd(0.0, -1.0, 0.0, 0.0))
 
 
