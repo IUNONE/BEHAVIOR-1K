@@ -146,7 +146,7 @@ def validate_candidate(env, objects, table, config, compiled, predicate, robot_p
     return None
 
 
-def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50, robot=DEFAULT_ROBOT):
+def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50, robot_model=DEFAULT_ROBOT):
     """自动采样, 构建和验证全部实例后保存共用模板与原生状态."""
     config = load_task_config(task_name)
     directory = task_directory(task_name)
@@ -168,7 +168,7 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50, rob
     cfg = {
         "env": {**config["frequencies"], "external_sensors": [camera_config(config)]},
         "scene": {"type": ADEPTScene.__name__, "use_floor_plane": False},
-        "robots": [robot_config(config, "collection", robot)],
+        "robots": [robot_config(config, "collection", robot_model)],
         "objects": deepcopy(config["room_objects"] + [config["table"]] + config["objects"]),
         "task": {"type": "DummyTask", "include_obs": False},
     }
@@ -266,7 +266,7 @@ def build(task_name, instance_ids, overwrite=False, seed=0, max_attempts=50, rob
         print("build_env: reloading saved scene for validation", flush=True)
         og.clear()
         env = og.Environment(configs=build_environment_config(
-            task_name, "collection", instance_ids[0], task_dir=staging, robot=robot,
+            task_name, "collection", instance_ids[0], task_dir=staging, robot=robot_model,
         ))
         configure_robot_physics(env)
         for instance_id in instance_ids:
