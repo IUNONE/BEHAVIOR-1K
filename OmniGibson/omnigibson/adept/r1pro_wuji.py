@@ -785,6 +785,10 @@ def import_usd():
     if not usda.is_file():
         raise FileNotFoundError(f"importer did not write {usda}")
     print(f"imported USD: {usda}", flush=True)
+    # Detach the stage before the process exits. Otherwise PhysX keeps a loose stage pointer.
+    import omnigibson as og
+
+    og.shutdown()
 
 
 @lru_cache(maxsize=1)

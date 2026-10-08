@@ -159,6 +159,25 @@ class SuppressLogsUntilError:
         return False  # let exception propagate
 
 
+def _ignore_missing_property_frame():
+    """Headless Kit has no property frame. Selection changes otherwise raise in save_scroll_pos."""
+    try:
+        from omni.kit.window.property.window import PropertyWindow
+    except Exception:
+        return
+    original = getattr(PropertyWindow, "save_scroll_pos", None)
+    if original is None or getattr(original, "_og_headless_guard", False):
+        return
+
+    def save_scroll_pos(self):
+        if getattr(self, "properties_frame", None) is None:
+            return None
+        return original(self)
+
+    save_scroll_pos._og_headless_guard = True
+    PropertyWindow.save_scroll_pos = save_scroll_pos
+
+
 def _launch_app():
     log.setLevel(logging.DEBUG if gm.DEBUG else logging.INFO)
 
@@ -305,6 +324,7 @@ def _launch_app():
     if gm.HEADLESS:
         og_log = lazy.omni.log.get_log()
         og_log.set_channel_enabled("carb.windowing-glfw.plugin", False, lazy.omni.log.SettingBehavior.OVERRIDE)
+        _ignore_missing_property_frame()
 
     # Globally suppress certain logging modules (unless we're in debug mode) since they produce spurious warnings
     if not gm.DEBUG:
@@ -367,7 +387,11 @@ def _launch_app():
     return app
 
 
+_printed_welcome = False
+
+
 def _launch_simulator(*args, **kwargs):
+    global _printed_welcome
     if not og.app:
         og.app = _launch_app()
 
@@ -2066,10 +2090,13 @@ def _launch_simulator(*args, **kwargs):
         # The simulator init function saves itself as og.sim.
         Simulator(*args, **kwargs)
 
-        print()
-        print_icon()
-        print_logo()
-        print()
-        log.info(f"{'-' * 10} Welcome to {logo_small()}! {'-' * 10}")
+        # og.clear() closes the stage and constructs a new Simulator. Print the banner once per process.
+        if not _printed_welcome:
+            print()
+            print_icon()
+            print_logo()
+            print()
+            log.info(f"{'-' * 10} Welcome to {logo_small()}! {'-' * 10}")
+            _printed_welcome = True
 
     return og.sim

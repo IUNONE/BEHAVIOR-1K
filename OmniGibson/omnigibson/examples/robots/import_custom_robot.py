@@ -13,6 +13,7 @@ from addict import Dict
 
 import omnigibson as og
 import omnigibson.lazy as lazy
+from omnigibson.macros import gm
 import omnigibson.utils.transform_utils as T
 from omnigibson.utils.asset_conversion_utils import (
     _add_xform_properties,
@@ -463,9 +464,10 @@ def add_sensor(stage, root_prim, sensor_type, link_name, parent_link_name=None, 
     if sensor_type == "Camera":
         sensor_prim.GetAttribute("focalLength").Set(17.0)
         sensor_prim.GetAttribute("clippingRange").Set(lazy.pxr.Gf.Vec2f(0.001, 1000000.0))
-        # Refresh visibility
+        # Refresh visibility. Headless has no viewport, and render() starts GLFW and the property panel.
         lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeInvisible()
-        og.sim.render()
+        if not gm.HEADLESS:
+            og.sim.render()
         lazy.pxr.UsdGeom.Imageable(sensor_prim).MakeVisible()
 
     # If we didn't have a parent prim defined, we need to add the offset directly to this sensor
