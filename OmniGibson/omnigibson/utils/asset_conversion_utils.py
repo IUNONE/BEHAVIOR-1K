@@ -1141,17 +1141,19 @@ def convert_urdf_to_usd(
     usd_path.unlink()
     sensor_usd_path.unlink()
 
-    # Keep textures beside the USD, matching omnigibson-robot-assets models/r1pro/usd/materials.
-    # A path of ../material/ is resolved from the MDL search path and does not find the files.
-    current_materials = configuration_dir / "materials" / "textures"
+    # The URDF importer records texture paths under configuration/materials/textures but does not
+    # always copy the jpg there. Collect the real files from the imported model and copy them next
+    # to the USDA, where Hydra can open an absolute path.
     new_materials = usd_dir / "materials"
-    if current_materials.exists():
-        new_materials.mkdir(parents=True, exist_ok=True)
-        for texture in current_materials.iterdir():
-            destination = new_materials / texture.name
-            if destination.exists():
-                destination.unlink()
-            texture.rename(destination)
+    new_materials.mkdir(parents=True, exist_ok=True)
+    texture_sources = {}
+    for found in model_root_path.rglob("*"):
+        if not found.is_file() or found.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+            continue
+        resolved = found.resolve()
+        if not resolved.is_file():
+            continue
+        texture_sources.setdefault(found.name, resolved)
 
     # Load the physics stage and prepare to flatten it and save it.
     physics_stage = lazy.pxr.Usd.Stage.Open(str(physics_usd_path))
@@ -1190,20 +1192,20 @@ def convert_urdf_to_usd(
 
     # Also update the asset paths
     def _update_path(asset_path):
-        # Get the absolute path - the asset path is relative to where the USD is.
-        absolute_asset_path = (usd_dir / asset_path).resolve()
-        absolute_original_materials_path = current_materials.resolve()
-
-        # If the file is not in our current materials directory, we don't update.
-        if not absolute_asset_path.is_relative_to(absolute_original_materials_path):
+        source = Path(asset_path)
+        if not source.is_absolute():
+            source = (usd_dir / asset_path).resolve()
+        if source.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
             return asset_path
-
-        # Otherwise, first get the new absolute path of the asset in the new folder
-        relative_to_material_dir = absolute_asset_path.relative_to(absolute_original_materials_path)
-        # Hydra resolves a bare relative path from the MDL search path, not from the USDA.
-        # The file now lives in usd/materials; store that absolute path.
-        final_path = (new_materials / relative_to_material_dir).resolve().as_posix()
-        print("Updating", asset_path, "to", final_path)
+        origin = source if source.is_file() else texture_sources.get(source.name)
+        if origin is None or not Path(origin).is_file():
+            print("Texture source missing:", asset_path)
+            return asset_path
+        destination = new_materials / source.name
+        if destination.resolve() != Path(origin).resolve():
+            shutil.copy2(origin, destination)
+        final_path = destination.resolve().as_posix()
+        print("Updating", asset_path, "to", final_path, "bytes", destination.stat().st_size)
         return final_path
 
     lazy.pxr.UsdUtils.ModifyAssetPaths(side_stage.GetRootLayer(), _update_path)
