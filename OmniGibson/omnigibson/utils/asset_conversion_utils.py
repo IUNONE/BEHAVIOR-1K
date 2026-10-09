@@ -1141,13 +1141,17 @@ def convert_urdf_to_usd(
     usd_path.unlink()
     sensor_usd_path.unlink()
 
-    # Move the materials directory contents
+    # Keep textures beside the USD, matching omnigibson-robot-assets models/r1pro/usd/materials.
+    # A path of ../material/ is resolved from the MDL search path and does not find the files.
     current_materials = configuration_dir / "materials" / "textures"
-    new_materials = model_root_path / "material"
+    new_materials = usd_dir / "materials"
     if current_materials.exists():
         new_materials.mkdir(parents=True, exist_ok=True)
         for texture in current_materials.iterdir():
-            texture.rename(new_materials / texture.name)
+            destination = new_materials / texture.name
+            if destination.exists():
+                destination.unlink()
+            texture.rename(destination)
 
     # Load the physics stage and prepare to flatten it and save it.
     physics_stage = lazy.pxr.Usd.Stage.Open(str(physics_usd_path))
@@ -1196,10 +1200,8 @@ def convert_urdf_to_usd(
 
         # Otherwise, first get the new absolute path of the asset in the new folder
         relative_to_material_dir = absolute_asset_path.relative_to(absolute_original_materials_path)
-        absolute_moved_path = new_materials / relative_to_material_dir
-
-        # Finally, find where that file is relative to the path where the USD goes.
-        final_path = os.path.relpath(absolute_moved_path, usd_dir.resolve())
+        # The exported USDA lives in usd_dir, so this is materials/<file>.
+        final_path = Path("materials", relative_to_material_dir).as_posix()
         print("Updating", asset_path, "to", final_path)
         return final_path
 
