@@ -1200,8 +1200,9 @@ def convert_urdf_to_usd(
 
         # Otherwise, first get the new absolute path of the asset in the new folder
         relative_to_material_dir = absolute_asset_path.relative_to(absolute_original_materials_path)
-        # The exported USDA lives in usd_dir, so this is materials/<file>.
-        final_path = Path("materials", relative_to_material_dir).as_posix()
+        # Hydra resolves a bare relative path from the MDL search path, not from the USDA.
+        # The file now lives in usd/materials; store that absolute path.
+        final_path = (new_materials / relative_to_material_dir).resolve().as_posix()
         print("Updating", asset_path, "to", final_path)
         return final_path
 
