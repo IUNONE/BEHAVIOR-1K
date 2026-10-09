@@ -1141,19 +1141,25 @@ def convert_urdf_to_usd(
     usd_path.unlink()
     sensor_usd_path.unlink()
 
-    # The URDF importer records texture paths under configuration/materials/textures but does not
-    # always copy the jpg there. Collect the real files from the imported model and copy them next
-    # to the USDA, where Hydra can open an absolute path.
+    # The URDF importer writes texture paths under configuration/materials/textures without copying
+    # the jpg. The real files ship with omnigibson-robot-assets/models/r1pro, or beside the OBJ.
     new_materials = usd_dir / "materials"
     new_materials.mkdir(parents=True, exist_ok=True)
     texture_sources = {}
-    for found in model_root_path.rglob("*"):
-        if not found.is_file() or found.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+    search_roots = [model_root_path, Path(urdf_path).resolve().parent]
+    official_robot = Path(get_dataset_path("omnigibson-robot-assets")) / "models" / "r1pro"
+    if official_robot.is_dir():
+        search_roots.append(official_robot)
+    for root in search_roots:
+        if not root.is_dir():
             continue
-        resolved = found.resolve()
-        if not resolved.is_file():
-            continue
-        texture_sources.setdefault(found.name, resolved)
+        for found in root.rglob("*"):
+            if not found.is_file() or found.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+                continue
+            resolved = found.resolve()
+            if resolved.is_file():
+                texture_sources.setdefault(found.name, resolved)
+    print(f"Indexed {len(texture_sources)} texture files from {[str(root) for root in search_roots]}")
 
     # Load the physics stage and prepare to flatten it and save it.
     physics_stage = lazy.pxr.Usd.Stage.Open(str(physics_usd_path))
