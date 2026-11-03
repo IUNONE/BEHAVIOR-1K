@@ -55,7 +55,9 @@ setup(
         "pillow~=11.0.0",
         "websockets>=15.0.1",
         "omegaconf>=2.3.0",
-        "lerobot[dataset] @ git+https://github.com/wensi-ai/lerobot@release/b1k",
+        # release/b1k now tracks LeRobot 0.6.2 (Python >=3.12). Isaac Sim 5.1 wheels are cp311-only,
+        # so pin the last b1k release that still declares Python >=3.11 (release/b1k-challenge-2026).
+        "lerobot[dataset] @ git+https://github.com/wensi-ai/lerobot@436812bd8ee39b768c645c248c91f1330834e687",
     ],
     extras_require={
         "dev": [
