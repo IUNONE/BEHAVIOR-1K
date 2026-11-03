@@ -18,6 +18,8 @@ ACCEPT_CONDA_TOS=false
 ACCEPT_NVIDIA_EULA=false
 ACCEPT_DATASET_TOS=false
 CONFIRM_NO_CONDA=false
+PIP_MIRROR=false
+HF_MIRROR=false
 
 [ "$#" -eq 0 ] && HELP=true
 
@@ -48,6 +50,8 @@ while [[ $# -gt 0 ]]; do
         --accept-nvidia-eula) ACCEPT_NVIDIA_EULA=true; shift ;;
         --accept-dataset-tos) ACCEPT_DATASET_TOS=true; shift ;;
         --confirm-no-conda) CONFIRM_NO_CONDA=true; shift ;;
+        --pip_mirror|--pip-mirror) PIP_MIRROR=true; shift ;;
+        --hf_mirror|--hf-mirror) HF_MIRROR=true; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -69,7 +73,7 @@ Options:
   --omnigibson            Install OmniGibson (core physics simulator)
   --bddl                  Install BDDL (Behavior Domain Definition Language)
   --joylo                 Install JoyLo (teleoperation interface)
-  --dataset               Download BEHAVIOR datasets (requires --omnigibson)
+  --dataset               Download BEHAVIOR datasets (OmniGibson must already be installed)
   --primitives            Install OmniGibson with primitives support
   --eval                  Install evaluation dependencies
   --asset-pipeline        Install the 3D scene and object asset pipeline
@@ -79,10 +83,13 @@ Options:
   --accept-nvidia-eula    Automatically accept NVIDIA Isaac Sim EULA
   --accept-dataset-tos    Automatically accept BEHAVIOR Dataset Terms
   --confirm-no-conda      Skip confirmation prompt when not in a conda environment
+  --pip_mirror            Use the Tsinghua PyPI mirror for pip installs
+  --hf_mirror             Use hf-mirror.com for Hugging Face dataset downloads
 
 Example (core components): ./setup.sh --new-env --omnigibson --bddl --dataset
 Example (full customization): ./setup.sh --new-env my_env --omnigibson --bddl --dataset --joylo --eval --primitives --cuda-version 12.6
 Example (non-interactive): ./setup.sh --new-env --omnigibson --dataset --accept-conda-tos --accept-nvidia-eula --accept-dataset-tos
+Example (datasets only): ./setup.sh --dataset --accept-dataset-tos --pip_mirror --hf_mirror
 EOF
     exit 0
 fi
@@ -96,6 +103,20 @@ fi
 
 WORKDIR=$(pwd)
 ARCH=$(uname -m)
+
+# Mirrors are opt-in. CUDA PyTorch wheels stay on download.pytorch.org because
+# that command passes --index-url, and the Tsinghua PyPI index only has CPU builds.
+if [ "$PIP_MIRROR" = true ]; then
+    export PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+    export PIP_TRUSTED_HOST="pypi.tuna.tsinghua.edu.cn"
+    echo "✓ pip mirror: $PIP_INDEX_URL"
+fi
+if [ "$HF_MIRROR" = true ]; then
+    export HF_ENDPOINT="https://hf-mirror.com"
+    # huggingface_hub's Xet backend contacts Hugging Face directly and ignores HF_ENDPOINT.
+    export HF_HUB_DISABLE_XET=1
+    echo "✓ Hugging Face mirror: $HF_ENDPOINT"
+fi
 
 # Colored, numbered progress output
 GREEN='\033[0;32m'
@@ -286,26 +307,24 @@ else
     skip_step "conda environment creation (add --new-env to create one)"
 fi
 
-# Install PyTorch via pip with CUDA support
-step "Installing PyTorch with CUDA $CUDA_VERSION support..."
+# Install PyTorch via pip with CUDA support.
+# A dataset-only rerun does not need this; torch is already in the environment.
+if [ "$OMNIGIBSON" = true ] || [ "$JOYLO" = true ] || [ "$EVAL" = true ]; then
+    step "Installing PyTorch with CUDA $CUDA_VERSION support..."
 
-# If a SOCKS proxy is configured, httpx (used by huggingface_hub for dataset downloads)
-# needs the extra 'socksio' package — install it upfront so downloads don't fail later.
-if env | grep -qiE '^(https?|all)_proxy=.*socks'; then
-    substep "SOCKS proxy detected, installing httpx[socks] support..."
-    python -m pip install "httpx[socks]"
+    # Determine the CUDA version string for pip URL (e.g., cu128, cu126, etc.)
+    CUDA_VER_SHORT=$(echo "$CUDA_VERSION" | sed 's/\.//g')  # e.g. convert 12.8 to 128
+
+    python -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 torchcodec==0.5 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
+
+    # Install numpy <2 to avoid conflicts
+    substep "Installing numpy..."
+    python -m pip install "numpy<2"
+
+    step_done "PyTorch + numpy installation finished"
+else
+    skip_step "PyTorch + numpy installation"
 fi
-
-# Determine the CUDA version string for pip URL (e.g., cu128, cu126, etc.)
-CUDA_VER_SHORT=$(echo "$CUDA_VERSION" | sed 's/\.//g')  # e.g. convert 12.8 to 128
-
-python -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 torchcodec==0.5 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
-
-# Install numpy <2 to avoid conflicts
-substep "Installing numpy..."
-python -m pip install "numpy<2"
-
-step_done "PyTorch + numpy installation finished"
 
 # Install BDDL
 if [ "$BDDL" = true ]; then
@@ -526,6 +545,13 @@ if [ "$DATASET" = true ]; then
     }
 
     step "Installing datasets..."
+
+    # If a SOCKS proxy is configured, httpx (used by huggingface_hub for dataset downloads)
+    # needs the extra 'socksio' package.
+    if env | grep -qiE '^(https?|all)_proxy=.*socks'; then
+        substep "SOCKS proxy detected, installing httpx[socks] support..."
+        python -m pip install "httpx[socks]"
+    fi
 
     # Determine if we should accept dataset license automatically
     DATASET_ACCEPT_FLAG=""
