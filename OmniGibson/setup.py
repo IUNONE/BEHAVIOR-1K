@@ -24,6 +24,9 @@ setup(
         "huggingface-hub[cli]>=0.34.4",
         "gymnasium>=0.28.1",
         "numpy<2.0.0,>=1.23.5",
+        # pyarrow 26 requires NumPy 2 at import time. Isaac Sim keeps this env on NumPy 1.x,
+        # and lerobot allows pyarrow>=21,<30, so stay on the last 1.x-compatible release.
+        "pyarrow>=21.0.0,<26",
         "scipy>=1.10.1",
         "GitPython>=3.1.40",
         "transforms3d>=0.4.1",

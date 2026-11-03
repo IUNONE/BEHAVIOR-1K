@@ -432,8 +432,8 @@ if [ "$OMNIGIBSON" = true ]; then
                     else
                         local partial_filepath="${filepath}.part"
                         echo "    Downloading $pkg..."
-                        if ! curl --fail --location --show-error \
-                            --retry 5 --retry-delay 3 --connect-timeout 30 \
+                        if ! curl --fail --location --http1.1 --show-error \
+                            --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 \
                             --continue-at - "$url" -o "$partial_filepath"; then
                             echo "ERROR: Failed to download $pkg. Download progress is preserved in $cache_dir"
                             echo "Activate the existing conda environment and rerun setup.sh without --new-env to resume."
