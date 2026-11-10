@@ -424,7 +424,6 @@ def download_and_unpack_zipped_dataset(dataset_name):
     # directory (including its .cache/huggingface folder) to recover an earlier download.
     download_dir = os.environ.get("OMNIGIBSON_DATASET_DOWNLOAD_DIR") or os.path.join(gm.DATA_PATH, ".downloads")
     os.makedirs(download_dir, exist_ok=True)
-    print(f"Dataset download cache: {download_dir}")
     real_target = get_dataset_path(dataset_name)
     if dataset_name == "behavior-1k-assets":
         online_filename = f"behavior-1k-assets-{BEHAVIOR_1K_ASSET_VERSION}.zip"
@@ -432,6 +431,7 @@ def download_and_unpack_zipped_dataset(dataset_name):
         online_filename = f"omnigibson-robot-assets-{OMNIGIBSON_ROBOT_ASSETS_VERSION}.zip"
     else:
         online_filename = f"{dataset_name}.zip"
+    print(f"download to tmp file: {os.path.abspath(os.path.join(download_dir, online_filename))}", flush=True)
     local_path = hf_hub_download(
         repo_id="behavior-1k/zipped-datasets",
         filename=online_filename,
