@@ -539,6 +539,22 @@ fi
 
 # Install datasets
 if [ "$DATASET" = true ]; then
+    if [ -z "${HF_TOKEN:-}" ]; then
+        if [ ! -t 0 ]; then
+            echo "ERROR: HF_TOKEN is empty. Export HF_TOKEN before running dataset downloads non-interactively."
+            exit 1
+        fi
+        while [ -z "${HF_TOKEN:-}" ]; do
+            read -r -s -p "Enter Hugging Face token (input hidden): " HF_TOKEN || {
+                echo
+                echo "ERROR: No HF_TOKEN supplied."
+                exit 1
+            }
+            echo
+        done
+        export HF_TOKEN
+    fi
+
     python -c "import omnigibson" || {
         echo "ERROR: OmniGibson import failed, please make sure you have omnigibson installed before downloading datasets"
         exit 1

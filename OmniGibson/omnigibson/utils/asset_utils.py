@@ -420,7 +420,11 @@ def get_texture_file(mesh_file):
 
 
 def download_and_unpack_zipped_dataset(dataset_name):
-    tempdir = tempfile.mkdtemp()
+    # Keep partial downloads across runs. Point this override at an old temporary
+    # directory (including its .cache/huggingface folder) to recover an earlier download.
+    download_dir = os.environ.get("OMNIGIBSON_DATASET_DOWNLOAD_DIR") or os.path.join(gm.DATA_PATH, ".downloads")
+    os.makedirs(download_dir, exist_ok=True)
+    print(f"Dataset download cache: {download_dir}")
     real_target = get_dataset_path(dataset_name)
     if dataset_name == "behavior-1k-assets":
         online_filename = f"behavior-1k-assets-{BEHAVIOR_1K_ASSET_VERSION}.zip"
@@ -432,11 +436,12 @@ def download_and_unpack_zipped_dataset(dataset_name):
         repo_id="behavior-1k/zipped-datasets",
         filename=online_filename,
         repo_type="dataset",
-        local_dir=tempdir,
+        local_dir=download_dir,
     )
     with zipfile.ZipFile(local_path, "r") as zip_ref:
         zip_ref.extractall(real_target)
-    shutil.rmtree(tempdir)
+    # Remove the large archive only after successful extraction; preserve other downloads.
+    os.remove(local_path)
 
 
 def ensure_omnigibson_robot_assets_version():
